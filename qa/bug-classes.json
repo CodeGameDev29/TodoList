@@ -52,6 +52,19 @@
           "id": "semantic-load-combined-diagnostics"
         }
       ]
+    },
+    {
+      "schema_version": 1,
+      "id": "DEPENDENCY_COMMAND_INJECTION",
+      "title": "Development dependency includes vulnerable shell-quote version",
+      "regression_rows": [
+        {
+          "id": "shell-quote-audit"
+        },
+        {
+          "id": "development-startup"
+        }
+      ]
     }
   ]
 }

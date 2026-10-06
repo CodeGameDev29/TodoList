@@ -11,5 +11,6 @@
     "build": "npm run build --workspace @todolist/web",
     "start": "npm run start --workspace @todolist/api"
   },
-  "devDependencies": { "concurrently": "^9.2.1" }
+  "devDependencies": { "concurrently": "^9.2.1" },
+  "overrides": { "concurrently": { "shell-quote": "1.11.0" } }
 }
