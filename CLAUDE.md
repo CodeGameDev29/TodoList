@@ -1,6 +1,6 @@
 # TodoList agent contract
 
-This is an intentionally empty future full-stack repository. Future boundaries are `apps/web` (React), `apps/api`, `database`, and `packages/contracts`; the latter technologies are undecided. Do not implement an app, select a stack, add dependencies, or create product behavior unless requested.
+The user approved a JavaScript React SPA in `apps/web`, a Node.js/Express REST API in `apps/api`, and SQLite persistence with migrations in `database`. The interview scope is 4–6 hours: task creation, listing, details, editing, completion/reopening, deletion, validation, persistence, tests, and documentation. Acceptance criteria are in `qa/acceptance.md`. Do not add authentication, filtering/sorting controls, Docker, deployment, or other product scope without approval. `packages/contracts` is reserved for shared code only when needed.
 
 Canonical harness sources are this file, `.claude/agents/`, `.claude/skills/`, `.claude/project/GOLDEN-RULES.md`, and `.claude/hooks/`. Generated mirrors are `AGENTS.md`, `.agents/skills/`, and `.codex/agents/`; never hand-edit them. Run `python scripts/harness/sync_agent_harness.py --check`.
 

@@ -1,1 +1,1 @@
-print('TodoList is harness-only: no app implementation or stack choice without an explicit request. Acceptance and independent judgment are required.')
+print('TodoList scope: approved React SPA, Node.js/Express REST API and SQLite within the interview budget. Follow qa/acceptance.md; acceptance and independent judgment are required. Additional product scope requires approval.')

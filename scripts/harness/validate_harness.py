@@ -1,13 +1,32 @@
 #!/usr/bin/env python3
 """Validate TodoList harness sources, mirrors, contracts, and Codex semantic load."""
 from __future__ import annotations
-import json, os, shutil, subprocess, sys, tempfile, tomllib
+import json, os, runpy, shutil, subprocess, sys, tempfile, tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ROLES = {"executor", "executor-hard", "verifier", "qa-runner", "qa-judge", "security-reviewer"}
 READ_ONLY = {"verifier", "qa-judge", "security-reviewer"}; MCP = "@playwright/mcp@0.0.83"
 def fail(message): raise SystemExit(f"FAIL: {message}")
+def source_files(root=ROOT):
+    """Scan tracked and nonignored source, without walking dependencies or runtime artifacts."""
+    result = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=root, capture_output=True)
+    if result.returncode: fail("Git source enumeration failed")
+    return [root / os.fsdecode(name) for name in result.stdout.split(b"\0") if name and (root / os.fsdecode(name)).is_file()]
+
+def check_qa_state(registry, ledger):
+    valid_class = runpy.run_path(str(ROOT / "qa/harness.py"))["valid_class"]
+    if not isinstance(registry, dict) or registry.get("schema_version") != 1 or not isinstance(registry.get("classes"), list): fail("QA registry schema")
+    definitions = registry["classes"]
+    if not all(valid_class(item) for item in definitions): fail("QA class definition")
+    ids = [item["id"] for item in definitions]
+    if len(ids) != len(set(ids)): fail("duplicate QA class")
+    if not isinstance(ledger, dict) or ledger.get("schema_version") != 2 or not isinstance(ledger.get("classes"), dict): fail("QA ledger schema")
+    for class_id, entry in ledger["classes"].items():
+        if class_id not in ids or not isinstance(entry, dict): fail("unknown QA ledger class")
+        if entry.get("state") not in {"open", "closed"} or not isinstance(entry.get("events"), list) or not isinstance(entry.get("regression_rows"), dict) or not isinstance(entry.get("clean_rounds"), int) or not isinstance(entry.get("process_failure"), bool) or "last_shipped_change" not in entry: fail("QA ledger entry")
+        expected_rows = {row["id"] for item in definitions if item["id"] == class_id for row in item["regression_rows"]}
+        if set(entry["regression_rows"]) != expected_rows or any(value not in {"UNRUN", "PASS", "FAIL"} for value in entry["regression_rows"].values()): fail("QA regression rows")
 def frontmatter(path):
     text = path.read_text().replace("\r\n", "\n")
     if not text.startswith("---\n") or "\n---\n" not in text[4:]: fail(f"agent frontmatter {path.name}")
@@ -71,13 +90,16 @@ def main():
     for meta in (ROOT / ".claude/skills").glob("*/agents/openai.yaml"):
         text = meta.read_text(); name = meta.parents[1].name
         if 'display_name: "' not in text or "Help with" in text or f"${name}" not in text: fail(f"skill metadata {name}")
-    if json.loads((ROOT / "qa/bug-classes.json").read_text()) != {"schema_version": 1, "classes": []} or json.loads((ROOT / "qa/ledger.json").read_text()) != {"schema_version": 2, "classes": {}}: fail("initial QA state")
+    check_qa_state(json.loads((ROOT / "qa/bug-classes.json").read_text()), json.loads((ROOT / "qa/ledger.json").read_text()))
     ignored = (ROOT / ".gitignore").read_text()
     if ".qa-artifacts/" not in ignored or ".codex/tmp/" not in ignored: fail("runtime ignores")
-    if list(ROOT.rglob("package.json")) or (ROOT / ".codex/tmp").exists() or list((ROOT / ".codex").rglob("*.bat")): fail("non-empty application or runtime residue")
+    manifest = json.loads((ROOT / "package.json").read_text())
+    if manifest.get("private") is not True or manifest.get("workspaces") != ["apps/api", "apps/web"] or manifest.get("engines", {}).get("node") != ">=24.15.0 <25": fail("approved application workspace contract")
+    files = source_files()
+    if any(path.suffix == ".bat" and ".codex" in path.relative_to(ROOT).parts for path in files): fail("Codex batch runtime residue")
     appdata = "App" + "Data"
-    for path in ROOT.rglob("*"):
-        if path.is_file() and ".git" not in path.parts and appdata in path.read_text(encoding="utf-8", errors="ignore"):
+    for path in files:
+        if appdata in path.read_text(encoding="utf-8", errors="ignore"):
             fail("absolute local runtime path in " + str(path.relative_to(ROOT)))
     semantic_codex(); print("harness validation passed")
 if __name__ == "__main__": main()

@@ -1,1 +1,44 @@
-{"schema_version":1,"classes":[]}
+{
+  "schema_version": 1,
+  "classes": [
+    {
+      "schema_version": 1,
+      "id": "API_UNKNOWN_FIELD_VALIDATION",
+      "title": "Special JSON keys evade unknown-field validation",
+      "regression_rows": [
+        {
+          "id": "prototype-post"
+        },
+        {
+          "id": "prototype-patch"
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "id": "QA_RUNTIME_SOURCE_BOUNDARY",
+      "title": "Generated browser runtime artifacts are treated as repository source",
+      "regression_rows": [
+        {
+          "id": "harness-runtime-artifact-exclusion"
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "id": "UI_ERROR_RESPONSE_PARSING",
+      "title": "Unparseable error responses expose technical exceptions instead of retry guidance",
+      "regression_rows": [
+        {
+          "id": "save-failure"
+        },
+        {
+          "id": "retry"
+        },
+        {
+          "id": "restart-persistence"
+        }
+      ]
+    }
+  ]
+}

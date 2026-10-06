@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "id": "todo-recovery",
+  "title": "Failed save retains input and supports retry after API restart",
+  "kind": "ui-only",
+  "base_url_env": "TODOLIST_BASE_URL",
+  "environment_notes": "Runner opens the development SPA, fills the form, stops only the isolated API process, attempts save, restarts that API with the same isolated database, and retries. Process control is external setup; all application actions use the visible UI. API restart occurs again before persistence step.",
+  "steps": [
+    {"id":"save-failure","expectation":"With the API stopped, saving shows an error and preserves all entered fields.","tdd_expect":"PASS","actions":[{"type":"navigate","url":"/"},{"type":"fill","selector":"title field","value":"Retain this draft"},{"type":"fill","selector":"description field","value":"Draft remains after failure"},{"type":"fill","selector":"due date field","value":"2026-11-01"},{"type":"click","selector":"create submit button"},{"type":"assert_visible","selector":"save error and preserved draft"}]},
+    {"id":"retry","expectation":"After the API restarts, submitting the preserved form succeeds exactly once.","tdd_expect":"PASS","actions":[{"type":"click","selector":"create submit button"},{"type":"assert_text","text":"Retain this draft"}]},
+    {"id":"restart-persistence","expectation":"After another API restart and page reload, the saved task and its details remain.","tdd_expect":"PASS","actions":[{"type":"navigate","url":"/"},{"type":"click","selector":"saved task details"},{"type":"assert_text","text":"Draft remains after failure"}]}
+  ]
+}

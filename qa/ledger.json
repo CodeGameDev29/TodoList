@@ -1,4 +1,39 @@
 {
   "schema_version": 2,
-  "classes": {}
+  "classes": {
+    "UI_ERROR_RESPONSE_PARSING": {
+      "regression_rows": {
+        "save-failure": "PASS",
+        "retry": "PASS",
+        "restart-persistence": "PASS"
+      },
+      "events": [
+        {
+          "report_id": "recovery-20261006-0825",
+          "phase": "red",
+          "result": "FAIL",
+          "change_id": "7147d629fe1ee686",
+          "at": "2026-10-06T08:26:17.465Z"
+        },
+        {
+          "report_id": "recovery-green1-20261006-0840",
+          "phase": "green",
+          "result": "PASS",
+          "change_id": "a0ee790e00304d11",
+          "at": "2026-10-06T08:28:48.592Z"
+        },
+        {
+          "report_id": "recovery-green2-20261006-0828",
+          "phase": "regression",
+          "result": "PASS",
+          "change_id": "a0ee790e00304d11",
+          "at": "2026-10-06T08:29:23.617Z"
+        }
+      ],
+      "clean_rounds": 2,
+      "state": "closed",
+      "process_failure": false,
+      "last_shipped_change": "a0ee790e00304d11"
+    }
+  }
 }

@@ -9,5 +9,11 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .qa-artifacts/
+.playwright-mcp/
 .codex/tmp/
 .DS_Store
+.idea/
+database/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

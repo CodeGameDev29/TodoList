@@ -4,6 +4,31 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("qa_harness", ROOT / "qa/harness.py")
 qa = importlib.util.module_from_spec(spec); spec.loader.exec_module(qa)
+validator_spec = importlib.util.spec_from_file_location("harness_validator", ROOT / "scripts/harness/validate_harness.py")
+validator = importlib.util.module_from_spec(validator_spec); validator_spec.loader.exec_module(validator)
+
+class HarnessApplicationTransitionTests(unittest.TestCase):
+    def test_scan_excludes_dependencies_and_runtime_but_keeps_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            subprocess.run(["git", "init", "--quiet", str(root)], check=True)
+            (root / ".gitignore").write_text("node_modules/\n.qa-artifacts/\n.playwright-mcp/\n")
+            for directory in ("node_modules", ".qa-artifacts", ".playwright-mcp/traces", "apps/api"):
+                (root / directory).mkdir(parents=True)
+            for filename in ("node_modules/package.json", ".qa-artifacts/run.log", ".playwright-mcp/traces/runtime.trace", "apps/api/source.js", "package.json"):
+                (root / filename).write_text("sample")
+            files = {path.relative_to(root).as_posix() for path in validator.source_files(root)}
+            self.assertEqual(files, {".gitignore", "apps/api/source.js", "package.json"})
+
+    def test_populated_qa_state_is_valid_and_unknown_class_is_rejected(self):
+        registry = {"schema_version": 1, "classes": [{"schema_version": 1, "id": "C1", "title": "Failure", "regression_rows": [{"id": "one"}]}]}
+        entry = {"state": "open", "events": [], "regression_rows": {"one": "UNRUN"}, "clean_rounds": 0, "process_failure": False, "last_shipped_change": None}
+        validator.check_qa_state(registry, {"schema_version": 2, "classes": {"C1": entry}})
+        with self.assertRaises(SystemExit):
+            validator.check_qa_state(registry, {"schema_version": 2, "classes": {"unknown": entry}})
+        entry["regression_rows"]["one"] = "MAYBE"
+        with self.assertRaises(SystemExit):
+            validator.check_qa_state(registry, {"schema_version": 2, "classes": {"C1": entry}})
 
 class QAHarnessTests(unittest.TestCase):
     def setUp(self):
