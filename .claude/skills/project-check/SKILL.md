@@ -1,0 +1,8 @@
+---
+name: project-check
+description: "Inspect TodoList harness readiness, scope, and validation state before work."
+---
+
+# Project check
+
+Outcome: report whether the harness and current task are ready. Read `PROJECT-STATE.md`, `CLAUDE.md`, and `GOLDEN-RULES.md`; run sync check, harness validation, and tests. Do not choose an app stack or add product code. Done means evidence-backed readiness or concrete blockers.

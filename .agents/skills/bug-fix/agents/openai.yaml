@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Fix"
+  short_description: "Repair a classified bug through judged RED and GREEN runs"
+  default_prompt: "Use $bug-fix to repair one classified defect with evidence."

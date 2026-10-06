@@ -1,0 +1,4 @@
+interface:
+  display_name: "Database Change"
+  short_description: "Plan safe database changes with isolated verification"
+  default_prompt: "Use $db-change to plan and verify a safe database change."

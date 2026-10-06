@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Feature"
+  short_description: "Deliver a scoped feature with independent acceptance evidence"
+  default_prompt: "Use $implement-feature to implement a settled feature safely."

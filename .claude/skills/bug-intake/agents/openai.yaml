@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Intake"
+  short_description: "Turn observed behavior into a reproducible classified report"
+  default_prompt: "Use $bug-intake to classify an observed application failure."

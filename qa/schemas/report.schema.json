@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","required":["schema_version","id","journey_id","phase","complete","run_valid","runner","started_at","finished_at","browser","wall_clock_ms","steps","judge","change_id"],"properties":{"phase":{"enum":["red","green","regression"]},"complete":{"const":true},"run_valid":{"const":true}}}

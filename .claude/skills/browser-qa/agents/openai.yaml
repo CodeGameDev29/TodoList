@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser QA"
+  short_description: "Run headed browser journeys with auditable evidence"
+  default_prompt: "Use $browser-qa to run and document a headed UI journey."

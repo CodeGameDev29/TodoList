@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+python scripts/harness/sync_agent_harness.py --check
+python scripts/harness/validate_harness.py
+python -m unittest discover -s tests

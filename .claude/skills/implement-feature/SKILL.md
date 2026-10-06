@@ -1,0 +1,8 @@
+---
+name: implement-feature
+description: "Implement an explicitly approved future TodoList feature with acceptance-first evidence."
+---
+
+# Implement feature
+
+Precondition: an explicit product request, settled scope, and acceptance rows. Assign implementation separately from QA judgment. Preserve regression evidence; use browser QA when a UI exists. Done means independent PASS/FAIL judgment and verifier result, never a self-judged claim.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Exploratory QA"
+  short_description: "Explore UI behavior and preserve classifiable evidence"
+  default_prompt: "Use $exploratory-qa to investigate UI behavior with evidence."

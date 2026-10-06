@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Harness"
+  short_description: "Coordinate classified bugs through independent QA workflow"
+  default_prompt: "Use $bug-harness to coordinate a complete classified bug loop."
