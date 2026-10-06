@@ -1,6 +1,7 @@
 from __future__ import annotations
-import importlib.util, json, os, shutil, subprocess, sys, tempfile, unittest
+import importlib.util, json, os, shutil, subprocess, sys, tempfile, tomllib, unittest
 from pathlib import Path
+from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("qa_harness", ROOT / "qa/harness.py")
 qa = importlib.util.module_from_spec(spec); spec.loader.exec_module(qa)
@@ -29,6 +30,46 @@ class HarnessApplicationTransitionTests(unittest.TestCase):
         entry["regression_rows"]["one"] = "MAYBE"
         with self.assertRaises(SystemExit):
             validator.check_qa_state(registry, {"schema_version": 2, "classes": {"C1": entry}})
+
+class CodexSemanticValidationTests(unittest.TestCase):
+    def test_isolated_home_uses_user_cache_cleans_up_and_has_no_credentials(self):
+        original_config = (ROOT / ".codex/config.toml").read_bytes()
+        with tempfile.TemporaryDirectory() as user_home:
+            with patch.object(validator.Path, "home", return_value=Path(user_home)), patch.dict(os.environ, {"OPENAI_API_KEY": "test-only", "CODEX_API_KEY": "test-only"}):
+                with validator.isolated_codex_environment() as environment:
+                    home = Path(environment["CODEX_HOME"])
+                    self.assertEqual(home.parent, Path(user_home) / ".cache/todolist-harness-validation")
+                    self.assertNotIn("OPENAI_API_KEY", environment)
+                    self.assertNotIn("CODEX_API_KEY", environment)
+                    self.assertFalse((home / "auth.json").exists())
+                    self.assertEqual(tomllib.loads((home / "config.toml").read_text())["projects"][str(ROOT)]["trust_level"], "trusted")
+                self.assertFalse(home.exists())
+        self.assertEqual((ROOT / ".codex/config.toml").read_bytes(), original_config)
+
+    def test_real_cli_accepts_valid_config_without_credentials_and_rejects_unknown_field(self):
+        codex = shutil.which("codex")
+        self.assertIsNotNone(codex, "Pinned Codex is required for semantic regression coverage")
+        validator.semantic_codex()
+        with validator.isolated_codex_environment() as environment:
+            config = Path(environment["CODEX_HOME"]) / "config.toml"
+            config.write_text("unsupported_field_for_regression = true\n" + config.read_text())
+            with self.assertRaisesRegex(SystemExit, "unknown configuration field.*unsupported_field_for_regression"):
+                validator.run_semantic_command([codex, "app-server", "--strict-config", "--stdio"], environment)
+
+    def test_semantic_failure_preserves_both_diagnostic_streams(self):
+        result = subprocess.CompletedProcess(["codex", "command"], 1, stdout="actual failure", stderr="helper warning")
+        with patch.object(validator.subprocess, "run", return_value=result) as run:
+            with self.assertRaises(SystemExit) as failure:
+                validator.run_semantic_command(["codex", "command"], {})
+        self.assertIn("stdout: actual failure", str(failure.exception))
+        self.assertIn("stderr: helper warning", str(failure.exception))
+        self.assertEqual(run.call_args.kwargs["input"], "")
+        self.assertEqual(run.call_args.kwargs["timeout"], 30)
+
+    def test_semantic_timeout_is_a_hard_failure(self):
+        with patch.object(validator.subprocess, "run", side_effect=subprocess.TimeoutExpired(["codex"], 30)):
+            with self.assertRaisesRegex(SystemExit, "timed out"):
+                validator.run_semantic_command(["codex", "command"], {})
 
 class QAHarnessTests(unittest.TestCase):
     def setUp(self):

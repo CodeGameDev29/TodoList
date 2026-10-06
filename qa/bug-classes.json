@@ -39,6 +39,19 @@
           "id": "restart-persistence"
         }
       ]
+    },
+    {
+      "schema_version": 1,
+      "id": "HARNESS_CI_PORTABILITY",
+      "title": "Codex semantic validation fails in the Linux CI environment",
+      "regression_rows": [
+        {
+          "id": "linux-codex-home-non-system-temp"
+        },
+        {
+          "id": "semantic-load-combined-diagnostics"
+        }
+      ]
     }
   ]
 }

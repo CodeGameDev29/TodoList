@@ -2,6 +2,7 @@
 """Validate TodoList harness sources, mirrors, contracts, and Codex semantic load."""
 from __future__ import annotations
 import json, os, runpy, shutil, subprocess, sys, tempfile, tomllib
+from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,17 +41,44 @@ def check_hooks(hooks, label, require_matcher):
             if (require_matcher and "matcher" not in row) or not isinstance(row.get("hooks"), list): fail(f"{label} hook row")
             for hook in row["hooks"]:
                 if hook.get("type") != "command" or not hook.get("command") or not isinstance(hook.get("timeout"), int): fail(f"{label} nested hook")
+@contextmanager
+def isolated_codex_environment():
+    # Codex refuses helper aliases under /tmp. Keep an isolated, disposable home
+    # under the user's cache, never their real Codex configuration or credentials.
+    parent = Path.home() / ".cache" / "todolist-harness-validation"
+    parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="todolist-codex-", dir=parent) as home:
+        config = Path(home) / "config.toml"
+        shutil.copy2(ROOT / ".codex/config.toml", config)
+        shutil.copytree(ROOT / ".codex/agents", Path(home) / "agents")
+        # The app server otherwise disables project-local configuration in a new
+        # home. Trust only this already-validated checkout in the disposable copy.
+        with config.open("a", encoding="utf-8") as target:
+            target.write('\n[projects.' + json.dumps(str(ROOT)) + ']\ntrust_level = "trusted"\n')
+        env = os.environ.copy(); env["CODEX_HOME"] = home
+        for key in ("OPENAI_API_KEY", "CODEX_API_KEY"):
+            env.pop(key, None)
+        yield env
+
+def run_semantic_command(command, env):
+    try:
+        result = subprocess.run(command, cwd=ROOT, env=env, input="", text=True, capture_output=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        fail("Codex semantic project load timed out: " + " ".join(command[1:]))
+    if result.returncode:
+        fail("Codex semantic project load failed (" + " ".join(command[1:]) + ")"
+             + "\nstdout: " + result.stdout[-2000:] + "\nstderr: " + result.stderr[-2000:])
+
 def semantic_codex():
     codex = shutil.which("codex")
     if not codex: fail("Codex 0.160.1 must be installed for semantic validation")
     if "0.160.1" not in subprocess.run([codex, "--version"], text=True, capture_output=True).stdout: fail("Codex must be pinned to 0.160.1")
-    with tempfile.TemporaryDirectory(prefix="todolist-codex-") as home:
-        shutil.copy2(ROOT / ".codex/config.toml", Path(home) / "config.toml")
-        shutil.copytree(ROOT / ".codex/agents", Path(home) / "agents")
-        env = os.environ.copy(); env["CODEX_HOME"] = home
-        for command in ([codex, "--strict-config", "doctor"], [codex, "debug", "prompt-input", "x"]):
-            result = subprocess.run(command, cwd=ROOT, env=env, text=True, capture_output=True)
-            if result.returncode: fail("Codex semantic project load failed: " + result.stderr[-500:])
+    with isolated_codex_environment() as env:
+        # Startup strictly loads config and agent definitions, then EOF shuts the
+        # stdio server down without any requests or model calls. Doctor also tests
+        # login/network health and cannot succeed in credential-free public CI.
+        run_semantic_command([codex, "app-server", "--strict-config", "--stdio"], env)
+        run_semantic_command([codex, "debug", "prompt-input", "x"], env)
 def main():
     if subprocess.run([sys.executable, "scripts/harness/sync_agent_harness.py", "--check"], cwd=ROOT).returncode: fail("generated mirror stale")
     config = tomllib.loads((ROOT / ".codex/config.toml").read_text())
