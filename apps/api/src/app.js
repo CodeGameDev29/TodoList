@@ -3,12 +3,12 @@ import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
 import { createTaskService } from './service.js';
 
-export function createApp(repository, { serveWeb = false, webPath = fileURLToPath(new URL('../../web/dist/', import.meta.url)) } = {}) {
+export function createApp(repository, { serveWeb = false, webPath = fileURLToPath(new URL('../../web/dist/', import.meta.url)), now } = {}) {
   const app = express();
-  const service = createTaskService(repository);
+  const service = createTaskService(repository, { now });
   app.disable('x-powered-by');
   app.use('/api', express.json({ limit: '100kb' }));
-  app.get('/api/todos', (req, res) => res.json(service.list()));
+  app.get('/api/todos', (req, res) => res.json(service.list(new URL(req.originalUrl, 'http://localhost').searchParams)));
   app.post('/api/todos', (req, res) => {
     const task = service.create(req.body);
     res.location(`/api/todos/${task.id}`).status(201).json(task);

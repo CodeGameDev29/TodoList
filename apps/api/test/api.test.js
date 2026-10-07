@@ -122,3 +122,40 @@ test('production SPA fallback preserves JSON unknown API response', async (t) =>
   assert.equal(response.status, 404);
   assert.deepEqual(await response.json(), { error: { message: 'API route not found.' } });
 });
+
+test('list filters combine with sorting and use the UTC day boundary', async (t) => {
+  const { request } = await fixture(t, { now: () => new Date('2026-10-07T00:30:00+02:00') });
+  const tasks = [];
+  for (const [title, dueDate] of [['Yesterday', '2026-10-05'], ['Today', '2026-10-06'], ['Tomorrow', '2026-10-07'], ['Undated', null], ['Completed', '2026-10-04'], ['Another overdue', '2026-10-03']]) {
+    tasks.push((await request('', { method: 'POST', body: { title, dueDate } })).body);
+  }
+  await request(`/${tasks[4].id}`, { method: 'PATCH', body: { isCompleted: true } });
+  const names = async (query) => (await request(query)).body.map((task) => task.title);
+  assert.deepEqual(await names('?status=overdue&sortBy=dueDate&order=asc'), ['Another overdue', 'Yesterday']);
+  assert.deepEqual(await names('?status=overdue&sortBy=title&order=desc'), ['Yesterday', 'Another overdue']);
+  assert.deepEqual(await names('?status=completed'), ['Completed']);
+  assert.equal((await names('?status=incomplete')).length, 5);
+  assert.equal((await names('?status=all')).length, 6);
+  assert.deepEqual((await request()).body, (await request('?status=all&sortBy=createdAt&order=desc')).body);
+  // Completing an overdue task removes it from the active view; reopening restores it.
+  await request(`/${tasks[0].id}`, { method: 'PATCH', body: { isCompleted: true } });
+  assert.deepEqual(await names('?status=overdue'), ['Another overdue']);
+  await request(`/${tasks[0].id}`, { method: 'PATCH', body: { isCompleted: false } });
+  assert.deepEqual(await names('?status=overdue&sortBy=dueDate&order=asc'), ['Another overdue', 'Yesterday']);
+});
+
+test('list query rejects invalid, repeated, unknown and structured parameters consistently', async (t) => {
+  const { request } = await fixture(t);
+  for (const query of [
+    '?status=', '?status=active', '?status=true', '?sortBy=1', '?sortBy=due_date', '?order=ASC',
+    '?status=all&status=all', '?sortBy=title&sortBy=dueDate', '?order=asc&order=desc',
+    '?status[]=all', '?status[mode]=completed', '?sortBy[0]=title', '?unknown=1', '?__proto__=x',
+    '?constructor=x', '?sortBy=title%20DESC%3B%20DROP%20TABLE%20todos',
+  ]) {
+    const response = await request(query);
+    assert.equal(response.status, 400, query);
+    assert.equal(response.body.error.message, 'Please correct the invalid query parameters.', query);
+    assert.ok(Object.keys(response.body.error.fields).length > 0, query);
+  }
+  assert.deepEqual((await request()).body, []);
+});

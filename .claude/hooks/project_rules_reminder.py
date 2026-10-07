@@ -1,1 +1,1 @@
-print('TodoList scope: approved React SPA, Node.js/Express REST API and SQLite within the interview budget. Follow qa/acceptance.md; acceptance and independent judgment are required. Additional product scope requires approval.')
+print('TodoList scope: approved React SPA, Node.js/Express REST API, SQLite, selectable filters/sorting and Docker. Follow qa/acceptance.md and qa/optional-enhancements.md; acceptance and independent judgment are required. No auth or multi-user behavior. Additional product scope requires approval.')

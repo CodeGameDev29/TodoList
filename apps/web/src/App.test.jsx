@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App.jsx';
 
@@ -16,8 +16,28 @@ function mockServer(initial = []) {
   let tasks = initial.map(task => ({ ...task }));
   const fetch = vi.fn(async (url, options = {}) => {
     const method = options.method ?? 'GET';
-    const id = url.split('/')[3];
-    if (method === 'GET') return respond(id ? tasks.find(task => task.id === id) : tasks);
+    const parsed = new URL(url, 'http://localhost');
+    const id = parsed.pathname.split('/')[3];
+    if (method === 'GET') {
+      if (id) return respond(tasks.find(task => task.id === id));
+      const status = parsed.searchParams.get('status') ?? 'all';
+      const sortBy = parsed.searchParams.get('sortBy') ?? 'createdAt';
+      const direction = parsed.searchParams.get('order') === 'asc' ? 1 : -1;
+      const today = new Date().toISOString().slice(0, 10);
+      const result = tasks.filter(task => status === 'all' ||
+        (status === 'completed' && task.isCompleted) ||
+        (status === 'incomplete' && !task.isCompleted) ||
+        (status === 'overdue' && !task.isCompleted && task.dueDate && task.dueDate < today));
+      result.sort((a, b) => {
+        if (sortBy === 'dueDate' && (!a.dueDate || !b.dueDate)) {
+          if (!!a.dueDate !== !!b.dueDate) return a.dueDate ? -1 : 1;
+        }
+        const first = String(a[sortBy] ?? '').toLowerCase();
+        const second = String(b[sortBy] ?? '').toLowerCase();
+        return (first < second ? -1 : first > second ? 1 : 0) * direction || a.id.localeCompare(b.id);
+      });
+      return respond(result);
+    }
     if (method === 'POST') {
       const task = { ...initialTask, ...JSON.parse(options.body), id: 'task-new', isCompleted: false };
       tasks = [task, ...tasks];
@@ -127,5 +147,107 @@ describe('task workflow', () => {
     expect(screen.getByRole('button', { name: 'New task' })).toBeDisabled();
     finish(respond({ ...initialTask, title: 'Slow save' }, 201));
     await waitFor(() => expect(screen.getByLabelText(/Title/)).toBeEnabled());
+  });
+
+  it('requests combined filter and sorting choices and displays server results in order', async () => {
+    const fetch = mockServer([
+      initialTask,
+      { ...initialTask, id: 'task-2', title: 'Alpha', isCompleted: true },
+      { ...initialTask, id: 'task-3', title: 'Zebra', isCompleted: true },
+    ]);
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('checkbox', { name: 'Mark Prepare interview complete' });
+    await user.selectOptions(screen.getByLabelText('Filter'), 'completed');
+    await screen.findByRole('checkbox', { name: 'Mark Alpha incomplete' });
+    expect(screen.queryByRole('checkbox', { name: 'Mark Prepare interview complete' })).not.toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText('Sort by'), 'title');
+    await user.selectOptions(screen.getByLabelText('Order'), 'asc');
+    await waitFor(() => expect(screen.getAllByRole('checkbox').map(item => item.getAttribute('aria-label')))
+      .toEqual(['Mark Alpha incomplete', 'Mark Zebra incomplete']));
+    expect(fetch).toHaveBeenCalledWith('/api/todos?status=completed&sortBy=title&order=asc', expect.any(Object));
+    await user.selectOptions(screen.getByLabelText('Order'), 'desc');
+    await waitFor(() => expect(screen.getAllByRole('checkbox')[0]).toHaveAccessibleName('Mark Zebra incomplete'));
+  });
+
+  it('refreshes the active filtered view after completion and retains its controls', async () => {
+    const fetch = mockServer([initialTask]);
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('checkbox');
+    await user.selectOptions(screen.getByLabelText('Filter'), 'incomplete');
+    await screen.findByRole('checkbox');
+    await user.selectOptions(screen.getByLabelText('Sort by'), 'dueDate');
+    await user.selectOptions(screen.getByLabelText('Order'), 'asc');
+    await screen.findByRole('checkbox');
+    await user.click(screen.getByRole('checkbox'));
+    await screen.findByText('No matching tasks');
+    expect(screen.queryByText('A fresh start')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Filter')).toHaveValue('incomplete');
+    expect(screen.getByLabelText('Sort by')).toHaveValue('dueDate');
+    expect(screen.getByLabelText('Order')).toHaveValue('asc');
+    expect(fetch.mock.calls.at(-1)[0]).toBe('/api/todos?status=incomplete&sortBy=dueDate&order=asc');
+    await user.selectOptions(screen.getByLabelText('Filter'), 'completed');
+    await screen.findByRole('checkbox', { name: 'Mark Prepare interview incomplete' });
+  });
+
+  it('shows overdue matches and distinguishes a filtered empty view from an empty task list', async () => {
+    mockServer([
+      { ...initialTask, id: 'past', title: 'Past deadline', dueDate: '2000-01-01' },
+      { ...initialTask, id: 'future', title: 'Future deadline', dueDate: '9999-01-01' },
+      { ...initialTask, id: 'done', title: 'Already done', dueDate: '2000-01-01', isCompleted: true },
+      { ...initialTask, id: 'undated', title: 'No deadline', dueDate: null },
+    ]);
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findAllByRole('checkbox');
+    await user.selectOptions(screen.getByLabelText('Filter'), 'overdue');
+    await screen.findByRole('checkbox', { name: 'Mark Past deadline complete' });
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+    expect(screen.getByText('Incomplete tasks due before today (UTC).')).toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox'));
+    await screen.findByText('No matching tasks');
+  });
+
+  it('retains a successful create when its list refresh fails and retries only the read', async () => {
+    const fetch = mockServer();
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText('A fresh start');
+    await user.type(screen.getByLabelText(/Title/), 'Created once');
+    // The successful write is followed by detail and list reads; fail only the list read.
+    const server = fetch.getMockImplementation();
+    let failRefresh = true;
+    fetch.mockImplementation(async (url, options = {}) => {
+      if (url.includes('?') && failRefresh) {
+        failRefresh = false;
+        throw new TypeError('Read offline');
+      }
+      return server(url, options);
+    });
+    await user.click(screen.getByRole('button', { name: 'Add task' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to refresh tasks');
+    expect(screen.getByText('Task created.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Title/)).toHaveValue('');
+    await user.click(screen.getByRole('button', { name: 'Retry loading' }));
+    await screen.findByRole('checkbox', { name: 'Mark Created once complete' });
+    expect(fetch.mock.calls.filter(([, options]) => options.method === 'POST')).toHaveLength(1);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('ignores an older query response that finishes after the selected filter response', async () => {
+    const fetch = mockServer([initialTask]);
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('checkbox');
+    let finishOlder;
+    fetch.mockImplementationOnce(() => new Promise(resolve => { finishOlder = resolve; }));
+    await user.selectOptions(screen.getByLabelText('Filter'), 'incomplete');
+    await user.selectOptions(screen.getByLabelText('Filter'), 'completed');
+    await screen.findByText('No matching tasks');
+    await act(async () => finishOlder(respond([initialTask])));
+    expect(screen.getByLabelText('Filter')).toHaveValue('completed');
+    expect(screen.getByText('No matching tasks')).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   });
 });

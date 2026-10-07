@@ -8,4 +8,4 @@
 6. Secrets never enter repository files, prompts, logs, screenshots, or fixtures.
 7. Every finding has a bug class: acceptance first, RED evidence, independent judgment/classification, fix, GREEN rerun, then verifier review. No notes-only limbo.
 8. At 30% context hand off and do not begin long work; at 60% hand off immediately. Do not leave agents hanging.
-9. Approved scope is the JavaScript React SPA, Node.js/Express REST API, and SQLite task application described in `qa/acceptance.md`, within a 4–6 hour interview budget. Additional product scope requires approval.
+9. Approved scope is the JavaScript React SPA, Node.js/Express REST API, and SQLite task application described in `qa/acceptance.md` and `qa/optional-enhancements.md`, including selectable filters, sorting and Docker. Authentication, multi-user behavior, external hosting deployment and other additional product scope require approval.

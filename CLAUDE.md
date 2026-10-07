@@ -1,6 +1,6 @@
 # TodoList agent contract
 
-The user approved a JavaScript React SPA in `apps/web`, a Node.js/Express REST API in `apps/api`, and SQLite persistence with migrations in `database`. The interview scope is 4–6 hours: task creation, listing, details, editing, completion/reopening, deletion, validation, persistence, tests, and documentation. Acceptance criteria are in `qa/acceptance.md`. Do not add authentication, filtering/sorting controls, Docker, deployment, or other product scope without approval. `packages/contracts` is reserved for shared code only when needed.
+The user approved a JavaScript React SPA in `apps/web`, a Node.js/Express REST API in `apps/api`, and SQLite persistence with migrations in `database`. Approved features include task creation, listing, details, editing, completion/reopening, deletion, validation, persistence, selectable filtering/sorting, Docker containerization, tests, and documentation. Acceptance criteria are in `qa/acceptance.md` and `qa/optional-enhancements.md`. Authentication, multi-user behavior, external hosting deployment, and other additional product scope require approval. `packages/contracts` is reserved for shared code only when needed.
 
 Canonical harness sources are this file, `.claude/agents/`, `.claude/skills/`, `.claude/project/GOLDEN-RULES.md`, and `.claude/hooks/`. Generated mirrors are `AGENTS.md`, `.agents/skills/`, and `.codex/agents/`; never hand-edit them. Run `python scripts/harness/sync_agent_harness.py --check`.
 

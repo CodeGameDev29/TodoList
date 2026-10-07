@@ -1,0 +1,31 @@
+# Allow only the production build inputs into the context.
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!apps/
+!apps/api/
+!apps/api/package.json
+!apps/api/src/
+!apps/api/src/**
+!apps/web/
+!apps/web/package.json
+!apps/web/index.html
+!apps/web/vite.config.js
+!apps/web/src/
+!apps/web/src/**
+!database/
+!database/migrations/
+!database/migrations/*.sql
+# Keep sensitive/local files excluded even if placed under a source directory.
+**/.git/**
+**/node_modules/**
+**/dist/**
+**/.env*
+**/*.sqlite*
+**/*.db*
+**/.qa-artifacts/**
+**/.playwright*/**
+**/.idea/**
+**/*.test.*
+**/test-setup.js

@@ -6,6 +6,26 @@ export class HttpError extends Error {
   }
 }
 
+export function validateListQuery(parameters) {
+  const choices = {
+    status: ['all', 'incomplete', 'completed', 'overdue'],
+    sortBy: ['createdAt', 'dueDate', 'title'],
+    order: ['asc', 'desc'],
+  };
+  const fields = Object.create(null);
+  const output = { status: 'all', sortBy: 'createdAt', order: 'desc' };
+  const seen = new Set();
+  for (const [key, value] of parameters) {
+    if (!Object.hasOwn(choices, key)) fields[key] = 'Unknown query parameter.';
+    else if (seen.has(key)) fields[key] = 'Provide this query parameter only once.';
+    else if (!choices[key].includes(value)) fields[key] = `Must be one of: ${choices[key].join(', ')}.`;
+    else output[key] = value;
+    seen.add(key);
+  }
+  if (Object.keys(fields).length) throw new HttpError(400, 'Please correct the invalid query parameters.', fields);
+  return output;
+}
+
 function validDate(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return false;
   const date = new Date(`${value}T00:00:00.000Z`);

@@ -1,0 +1,20 @@
+# Optional enhancements: approved acceptance
+
+The user approved all optional assignment enhancements: selectable filtering, selectable sorting, existing input validation, and Docker containerization. Remove the README's 4–6-hour scope statement. Authentication and multi-user behavior remain out of scope. Preserve existing task operations and user data.
+
+| ID | Acceptance | Evidence |
+| --- | --- | --- |
+| E1 | Labeled filter selects All, Incomplete, Completed, or Overdue; overdue means incomplete with a due date strictly before today's UTC calendar date. Today, undated and completed tasks are excluded. | API boundary tests and headed UI journey |
+| E2 | Labeled sorting selects creation date, due date or title and ascending/descending order. Null due dates remain last in both directions; stable ID ascending tie-break; title comparison is case-insensitive. | API ordering tests and headed UI journey |
+| E3 | Filters and sorting combine; changes reload results; CRUD/status operations refresh the active view without losing successful saves. A no-matches state differs from a truly empty list; failures are retryable and drafts retained. | Frontend tests and headed UI journey |
+| E4 | Invalid/repeated/unknown list query parameters return consistent 400 errors. Existing write validation and lifecycle behavior remain passing. | API and frontend regression tests |
+| E5 | Docker builds and runs the production SPA/API together as a non-root user, serves a health check, and persists tasks across container replacement using a named volume. Docker context excludes local databases, secrets, runtime captures and dependencies. | Docker build/run/recreate evidence or explicitly documented environmental blocker; independent review |
+| E6 | README removes timebox scope text and documents selectable filters/order, overdue rules, list query examples, Docker build/Compose commands, persistent volume behavior and tests. No auth or multi-user features added. | Read-only documentation review |
+
+## Shared implementation contract
+
+`GET /api/todos?status=all&sortBy=createdAt&order=desc`. All parameters optional; defaults shown. Status enum: all/incomplete/completed/overdue. Sort enum: createdAt/dueDate/title. Order: asc/desc. Response remains a JSON task array. Reject unknown or repeated parameters rather than silently discarding them. Use parameter bindings for values and whitelist SQL expressions/directions. Due-date nulls always last. Title sorting uses SQLite NOCASE (ASCII case-insensitive), document that scope if needed. Overdue uses server UTC day; no new schema or stored computed status. Sorting ties always use ID ascending.
+
+Frontend requests active list query and uses server order. Labels: Filter, Sort by, Order. UI option labels All tasks, Incomplete, Completed, Overdue; Created date, Due date, Title; Ascending, Descending. Preserve selected filter/order across mutations in the session. A successful mutation followed by a failed list refresh must not be presented as a failed write or cause duplicate create on retry. Ignore stale reads after query changes. Existing user demo data must never be used for QA.
+
+Container: multi-stage Node 24 build, production dependencies only at runtime, non-root node user, HOST=0.0.0.0 and internal PORT=3001, DATABASE_PATH=/data/todos.sqlite; Compose host loopback port 8080 by default, named volume mounted /data. Health check must actually verify API availability. Use isolated image/container/volume names for tests; never delete a user's volume. No deployment to an external hosting service.

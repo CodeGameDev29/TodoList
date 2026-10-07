@@ -1,6 +1,6 @@
 # Approved TodoList acceptance
 
-Scope approved by the user: JavaScript React SPA, Node.js/Express REST API, SQLite persistence. Target: 4–6 hours of focused work. No authentication, filtering, sorting controls, Docker, or deployment in this iteration.
+Scope approved by the user: JavaScript React SPA, Node.js/Express REST API, SQLite persistence, selectable filtering/sorting and Docker containerization. Optional-enhancement contracts and acceptance rows are in [optional-enhancements.md](optional-enhancements.md). Authentication, multi-user behavior and external hosting deployment are excluded.
 
 | ID | Acceptance | Required evidence |
 | --- | --- | --- |

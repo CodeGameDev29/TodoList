@@ -22,6 +22,9 @@ export default function App() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState('');
+  const [status, setStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [order, setOrder] = useState('desc');
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -34,20 +37,33 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
   const titleRef = useRef(null);
+  const listRequest = useRef(0);
+  const listController = useRef(null);
+  const listQuery = `?${new URLSearchParams({ status, sortBy, order })}`;
 
-  async function loadList(signal) {
+  async function loadList() {
+    listController.current?.abort();
+    const controller = new AbortController();
+    listController.current = controller;
+    const attempt = ++listRequest.current;
     setLoading(true);
     setListError('');
-    try { setTodos(await request('', { signal })); }
-    catch (failure) { if (failure.name !== 'AbortError') setListError(failure.message); }
-    finally { if (!signal?.aborted) setLoading(false); }
+    try {
+      const tasks = await request(listQuery, { signal: controller.signal });
+      if (attempt === listRequest.current && !controller.signal.aborted) setTodos(tasks);
+    } catch (failure) {
+      if (attempt === listRequest.current && !controller.signal.aborted && failure.name !== 'AbortError') {
+        setListError(`Unable to refresh tasks. ${failure.message}`);
+      }
+    } finally {
+      if (attempt === listRequest.current && !controller.signal.aborted) setLoading(false);
+    }
   }
 
   useEffect(() => {
-    const controller = new AbortController();
-    loadList(controller.signal);
-    return () => controller.abort();
-  }, []);
+    loadList();
+    return () => listController.current?.abort();
+  }, [listQuery]);
 
   useEffect(() => {
     setDetail(null);
@@ -100,10 +116,10 @@ export default function App() {
         body: JSON.stringify({ title: form.title.trim(), description: form.description || null, dueDate: form.dueDate || null }),
       });
       if (editingId) replaceTask(task);
-      else setTodos(current => [task, ...current]);
       setNotice(editingId ? 'Task updated.' : 'Task created.');
       setSelectedId(task.id);
       newTask();
+      await loadList();
     } catch (failure) {
       setError(failure.message);
       setFields(failure.fields ?? {});
@@ -117,6 +133,7 @@ export default function App() {
     try {
       replaceTask(await request(`/${task.id}`, { method: 'PATCH', body: JSON.stringify({ isCompleted: !task.isCompleted }) }));
       setNotice(task.isCompleted ? 'Task reopened.' : 'Task completed.');
+      await loadList();
     } catch (failure) { setError(failure.message); }
     finally { setSaving(false); }
   }
@@ -132,6 +149,7 @@ export default function App() {
       if (editingId === detail.id) newTask();
       setSelectedId(null);
       setNotice('Task deleted.');
+      await loadList();
     } catch (failure) { setError(failure.message); }
     finally { setSaving(false); }
   }
@@ -146,7 +164,19 @@ export default function App() {
     <div className="workspace">
       <section className="panel tasks" aria-labelledby="tasks-heading">
         <div className="section-heading"><h2 id="tasks-heading">Your tasks</h2><span className="count">{todos.length}</span></div>
-        {loading ? <p role="status" className="placeholder">Loading tasks…</p> : listError ? <div className="placeholder"><p role="alert">{listError}</p><button onClick={() => loadList()} disabled={saving}>Retry loading</button></div> : !todos.length ? <div className="placeholder"><h3>A fresh start</h3><p>Add your first task using the form.</p></div> :
+        <div className="list-controls">
+          <div><label htmlFor="filter">Filter</label><select id="filter" value={status} disabled={saving} onChange={event => setStatus(event.target.value)}>
+            <option value="all">All tasks</option><option value="incomplete">Incomplete</option><option value="completed">Completed</option><option value="overdue">Overdue</option>
+          </select></div>
+          <div><label htmlFor="sortBy">Sort by</label><select id="sortBy" value={sortBy} disabled={saving} onChange={event => setSortBy(event.target.value)}>
+            <option value="createdAt">Created date</option><option value="dueDate">Due date</option><option value="title">Title</option>
+          </select></div>
+          <div><label htmlFor="order">Order</label><select id="order" value={order} disabled={saving} onChange={event => setOrder(event.target.value)}>
+            <option value="asc">Ascending</option><option value="desc">Descending</option>
+          </select></div>
+        </div>
+        {status === 'overdue' && <p className="filter-help">Incomplete tasks due before today (UTC).</p>}
+        {loading ? <p role="status" className="placeholder">Loading tasks…</p> : listError ? <div className="placeholder"><p role="alert">{listError}</p><button onClick={() => loadList()} disabled={saving}>Retry loading</button></div> : !todos.length ? <div className="placeholder"><h3>{status === 'all' ? 'A fresh start' : 'No matching tasks'}</h3><p>{status === 'all' ? 'Add your first task using the form.' : 'Try another filter or add a task.'}</p></div> :
           <ul className="task-list">{todos.map(todo => <li key={todo.id} className={`${selectedId === todo.id ? 'selected' : ''} ${todo.isCompleted ? 'completed' : ''}`}>
             <input type="checkbox" checked={todo.isCompleted} disabled={saving || detailLoading} onChange={() => toggleTask(todo)} aria-label={`Mark ${todo.title} ${todo.isCompleted ? 'incomplete' : 'complete'}`} />
             <button className="task-select" disabled={saving} onClick={() => setSelectedId(todo.id)} aria-pressed={selectedId === todo.id}>

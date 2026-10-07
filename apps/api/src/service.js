@@ -1,12 +1,14 @@
-import { HttpError, validateTask } from './validation.js';
+import { HttpError, validateTask, validateListQuery } from './validation.js';
 
-export function createTaskService(repository) {
+export function createTaskService(repository, { now = () => new Date() } = {}) {
   const requireTask = (task) => {
     if (!task) throw new HttpError(404, 'Task not found.');
     return task;
   };
   return {
-    list: () => repository.list(),
+    list: (parameters = new URLSearchParams()) => repository.list({
+      ...validateListQuery(parameters), today: now().toISOString().slice(0, 10),
+    }),
     get: (id) => requireTask(repository.get(id)),
     create: (body) => repository.create(validateTask(body)),
     update: (id, body) => requireTask(repository.update(id, validateTask(body, true))),

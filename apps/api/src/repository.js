@@ -10,6 +10,13 @@ const migrations = [{
   down: readFileSync(new URL('../../../database/migrations/001_create_todos.down.sql', import.meta.url), 'utf8'),
 }];
 
+const listFilters = {
+  all: '', incomplete: 'WHERE is_completed = 0', completed: 'WHERE is_completed = 1',
+  overdue: 'WHERE is_completed = 0 AND due_date < ?',
+};
+const listSorts = { createdAt: 'created_at', dueDate: 'due_date', title: 'title COLLATE NOCASE' };
+const listOrders = { asc: 'ASC', desc: 'DESC' };
+
 export const defaultDatabasePath = fileURLToPath(new URL('../../../database/data/todos.sqlite', import.meta.url));
 
 export function migrate(db, targetVersion = migrations.length) {
@@ -53,7 +60,15 @@ export function createRepository(databasePath = defaultDatabasePath) {
   try { migrate(db); } catch (error) { db.close(); throw error; }
   const get = (id) => serialize(db.prepare('SELECT * FROM todos WHERE id = ?').get(id));
   return {
-    list: () => db.prepare('SELECT * FROM todos ORDER BY created_at DESC, id ASC').all().map(serialize),
+    list({ status = 'all', sortBy = 'createdAt', order = 'desc', today = new Date().toISOString().slice(0, 10) } = {}) {
+      if (!Object.hasOwn(listFilters, status) || !Object.hasOwn(listSorts, sortBy) || !Object.hasOwn(listOrders, order)) {
+        throw new Error('Unsupported list options');
+      }
+      // Only fixed whitelist expressions enter SQL; the date remains a bound value.
+      const nullsLast = sortBy === 'dueDate' ? 'due_date IS NULL ASC, ' : '';
+      const statement = db.prepare(`SELECT * FROM todos ${listFilters[status]} ORDER BY ${nullsLast}${listSorts[sortBy]} ${listOrders[order]}, id ASC`);
+      return (status === 'overdue' ? statement.all(today) : statement.all()).map(serialize);
+    },
     get,
     create(input) {
       const id = randomUUID();

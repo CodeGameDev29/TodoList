@@ -58,3 +58,37 @@ test('list order is newest first with deterministic ID tie breaker', () => {
     assert.deepEqual(repository.list(), expected);
   } finally { repository.close(); }
 });
+
+test('all sort directions preserve stable ties and keep undated tasks last', (t) => {
+  const directory = mkdtempSync(join(tmpdir(), 'todolist-order-'));
+  const path = join(directory, 'test.sqlite');
+  const repository = createRepository(path);
+  t.after(() => {
+    repository.close();
+    rmSync(directory, { recursive: true, force: true });
+  });
+  const db = new DatabaseSync(path);
+  try {
+    const insert = db.prepare('INSERT INTO todos (id, title, due_date, created_at) VALUES (?, ?, ?, ?)');
+    insert.run('b', 'alpha', '2026-10-05', '2026-10-01T00:00:00.000Z');
+    insert.run('a', 'ALPHA', '2026-10-05', '2026-10-01T00:00:00.000Z');
+    insert.run('c', 'Beta', '2026-10-06', '2026-10-02T00:00:00.000Z');
+    insert.run('d', 'zebra', null, '2026-10-03T00:00:00.000Z');
+    insert.run('e', 'ZEBRA', null, '2026-10-03T00:00:00.000Z');
+  } finally { db.close(); }
+  const ids = (options) => repository.list(options).map((task) => task.id);
+  for (const sortBy of ['createdAt', 'dueDate', 'title']) {
+    assert.deepEqual(ids({ sortBy, order: 'asc' }), ['a', 'b', 'c', 'd', 'e'], sortBy);
+    const descending = sortBy === 'dueDate' ? ['c', 'a', 'b', 'd', 'e'] : ['d', 'e', 'c', 'a', 'b'];
+    assert.deepEqual(ids({ sortBy, order: 'desc' }), descending, sortBy);
+  }
+  assert.deepEqual(ids(), ['d', 'e', 'c', 'a', 'b']);
+  repository.update('b', { isCompleted: true });
+  assert.deepEqual(ids({ status: 'overdue', today: '2026-10-06', sortBy: 'dueDate', order: 'desc' }), ['a']);
+  assert.deepEqual(ids({ status: 'completed' }), ['b']);
+  assert.deepEqual(ids({ status: 'incomplete' }), ['d', 'e', 'c', 'a']);
+  assert.deepEqual(ids({ status: 'overdue', today: '0001-01-01' }), []);
+  assert.throws(() => repository.list({ sortBy: 'title; DROP TABLE todos' }), /Unsupported list options/);
+  assert.throws(() => repository.list({ status: '__proto__' }), /Unsupported list options/);
+  assert.deepEqual(ids(), ['d', 'e', 'c', 'a', 'b']);
+});
