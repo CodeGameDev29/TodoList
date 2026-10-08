@@ -5,16 +5,122 @@
   "kind": "ui-only",
   "base_url_env": "TODOLIST_BASE_URL",
   "steps": [
-    {"id":"empty","expectation":"Empty task list provides a clear create form and usable empty state.","tdd_expect":"PASS","actions":[{"type":"navigate","url":"/"},{"type":"assert_visible","selector":"form","expectation":"Create form and empty list state"}]},
-    {"id":"validation","expectation":"Blank or whitespace title cannot create a task, and feedback is visible.","tdd_expect":"PASS","actions":[{"type":"fill","selector":"title field","value":"   "},{"type":"click","selector":"create submit button"},{"type":"assert_visible","selector":"title validation feedback"}]},
-    {"id":"create","expectation":"Create a task with title, description and date; list displays title, date and incomplete state.","tdd_expect":"PASS","actions":[{"type":"fill","selector":"title field","value":"Interview task"},{"type":"fill","selector":"description field","value":"Explain the storage boundary"},{"type":"fill","selector":"due date field","value":"2026-12-15"},{"type":"click","selector":"create submit button"},{"type":"assert_text","text":"Interview task"}]},
-    {"id":"details","expectation":"Selecting task loads full description, date, creation timestamp and status.","tdd_expect":"PASS","actions":[{"type":"click","selector":"task details action"},{"type":"assert_text","text":"Explain the storage boundary"}]},
-    {"id":"edit-clear","expectation":"Edit title and clear description and date; list and details reflect saved fields.","tdd_expect":"PASS","actions":[{"type":"click","selector":"edit task action"},{"type":"fill","selector":"title field","value":"Interview task revised"},{"type":"fill","selector":"description field","value":""},{"type":"fill","selector":"due date field","value":""},{"type":"click","selector":"save task action"},{"type":"assert_text","text":"Interview task revised"}]},
-    {"id":"complete","expectation":"Completing the task visibly checks its completion control and changes its status.","tdd_expect":"PASS","actions":[{"type":"check","selector":"task completion checkbox"},{"type":"assert_visible","selector":"completed task status"}]},
-    {"id":"reopen","expectation":"Reopening the task restores incomplete state.","tdd_expect":"PASS","actions":[{"type":"uncheck","selector":"task completion checkbox"},{"type":"assert_visible","selector":"incomplete task status"}]},
-    {"id":"reload","expectation":"Reloading preserves the edited task and incomplete state.","tdd_expect":"PASS","actions":[{"type":"navigate","url":"/"},{"type":"assert_text","text":"Interview task revised"}]},
-    {"id":"delete-cancel","expectation":"Cancelling the delete confirmation preserves the task.","tdd_expect":"PASS","actions":[{"type":"click","selector":"task delete action"},{"type":"press","selector":"delete confirmation","value":"Escape"},{"type":"assert_text","text":"Interview task revised"}]},
-    {"id":"delete","expectation":"Confirming deletion removes the task and restores empty state.","tdd_expect":"PASS","actions":[{"type":"click","selector":"task delete action"},{"type":"press","selector":"delete confirmation","value":"Enter"},{"type":"assert_visible","selector":"empty state"}]},
-    {"id":"narrow-keyboard","expectation":"At a narrow viewport the form and list remain usable, fields are labeled, and keyboard focus is visible.","tdd_expect":"PASS","actions":[{"type":"press","selector":"page","value":"Tab"},{"type":"screenshot","expectation":"Narrow viewport and focused interactive control"}]}
+    {
+      "id": "empty",
+      "expectation": "Empty task list provides a clear create form and usable empty state.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "navigate", "url": "/" },
+        {
+          "type": "assert_visible",
+          "selector": "form",
+          "expectation": "Create form and empty list state"
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "expectation": "Blank or whitespace title cannot create a task, and feedback is visible.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "fill", "selector": "title field", "value": "   " },
+        { "type": "click", "selector": "create submit button" },
+        { "type": "assert_visible", "selector": "title validation feedback" }
+      ]
+    },
+    {
+      "id": "create",
+      "expectation": "Create a task with title, description and date; list displays title, date and incomplete state.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "fill", "selector": "title field", "value": "Interview task" },
+        {
+          "type": "fill",
+          "selector": "description field",
+          "value": "Explain the storage boundary"
+        },
+        { "type": "fill", "selector": "due date field", "value": "2026-12-15" },
+        { "type": "click", "selector": "create submit button" },
+        { "type": "assert_text", "text": "Interview task" }
+      ]
+    },
+    {
+      "id": "details",
+      "expectation": "Selecting task loads full description, date, creation timestamp and status.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "click", "selector": "task details action" },
+        { "type": "assert_text", "text": "Explain the storage boundary" }
+      ]
+    },
+    {
+      "id": "edit-clear",
+      "expectation": "Edit title and clear description and date; list and details reflect saved fields.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "click", "selector": "edit task action" },
+        { "type": "fill", "selector": "title field", "value": "Interview task revised" },
+        { "type": "fill", "selector": "description field", "value": "" },
+        { "type": "fill", "selector": "due date field", "value": "" },
+        { "type": "click", "selector": "save task action" },
+        { "type": "assert_text", "text": "Interview task revised" }
+      ]
+    },
+    {
+      "id": "complete",
+      "expectation": "Completing the task visibly checks its completion control and changes its status.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "check", "selector": "task completion checkbox" },
+        { "type": "assert_visible", "selector": "completed task status" }
+      ]
+    },
+    {
+      "id": "reopen",
+      "expectation": "Reopening the task restores incomplete state.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "uncheck", "selector": "task completion checkbox" },
+        { "type": "assert_visible", "selector": "incomplete task status" }
+      ]
+    },
+    {
+      "id": "reload",
+      "expectation": "Reloading preserves the edited task and incomplete state.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "navigate", "url": "/" },
+        { "type": "assert_text", "text": "Interview task revised" }
+      ]
+    },
+    {
+      "id": "delete-cancel",
+      "expectation": "Cancelling the delete confirmation preserves the task.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "click", "selector": "task delete action" },
+        { "type": "press", "selector": "delete confirmation", "value": "Escape" },
+        { "type": "assert_text", "text": "Interview task revised" }
+      ]
+    },
+    {
+      "id": "delete",
+      "expectation": "Confirming deletion removes the task and restores empty state.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "click", "selector": "task delete action" },
+        { "type": "press", "selector": "delete confirmation", "value": "Enter" },
+        { "type": "assert_visible", "selector": "empty state" }
+      ]
+    },
+    {
+      "id": "narrow-keyboard",
+      "expectation": "At a narrow viewport the form and list remain usable, fields are labeled, and keyboard focus is visible.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "press", "selector": "page", "value": "Tab" },
+        { "type": "screenshot", "expectation": "Narrow viewport and focused interactive control" }
+      ]
+    }
   ]
 }

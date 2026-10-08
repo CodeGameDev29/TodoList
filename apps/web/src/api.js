@@ -15,9 +15,11 @@ export async function request(path = '', options = {}) {
     data = await response.json();
   } catch (error) {
     if (error.name === 'AbortError') throw error;
-    throw new Error(response.ok
-      ? 'The server returned an unexpected response. Please try again.'
-      : 'The request failed. Please try again.');
+    throw new Error(
+      response.ok
+        ? 'The server returned an unexpected response. Please try again.'
+        : 'The request failed. Please try again.',
+    );
   }
   if (!response.ok) {
     const error = new Error(data?.error?.message || 'The request failed. Please try again.');

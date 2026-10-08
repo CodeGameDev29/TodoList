@@ -3,14 +3,28 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/api", "apps/web"],
-  "engines": { "node": ">=24.15.0 <25" },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
   "scripts": {
     "dev": "concurrently --kill-others --names api,web \"npm run dev --workspace @todolist/api\" \"npm run dev --workspace @todolist/web\"",
     "test": "npm run test --workspace @todolist/api && npm run test --workspace @todolist/web",
     "build": "npm run build --workspace @todolist/web",
-    "start": "npm run start --workspace @todolist/api"
+    "start": "npm run start --workspace @todolist/api",
+    "format": "prettier --write . && python -m ruff check --select I --fix . && python -m ruff format . && python scripts/harness/sync_agent_harness.py",
+    "format:check": "prettier --check . && python -m ruff check --select I . && python -m ruff format --check . && python scripts/harness/sync_agent_harness.py --check"
   },
-  "devDependencies": { "concurrently": "^9.2.1" },
-  "overrides": { "concurrently": { "shell-quote": "1.11.0" } }
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "3.9.9"
+  },
+  "overrides": {
+    "concurrently": {
+      "shell-quote": "1.11.0"
+    }
+  }
 }

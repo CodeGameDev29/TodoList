@@ -1,6 +1,6 @@
 ---
 name: browser-qa
-description: "Run headed Playwright MCP acceptance journeys and preserve auditable browser evidence."
+description: 'Run headed Playwright MCP acceptance journeys and preserve auditable browser evidence.'
 ---
 
 # Browser QA

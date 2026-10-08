@@ -1,6 +1,6 @@
 ---
 name: db-change
-description: "Plan and validate future database changes without touching production data."
+description: 'Plan and validate database changes without touching production data.'
 ---
 
 # Database change

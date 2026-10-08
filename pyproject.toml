@@ -1,0 +1,13 @@
+[tool.ruff]
+required-version = "==0.16.10"
+target-version = "py311"
+line-length = 88
+extend-exclude = [".agents", ".codex", ".idea", ".qa-artifacts", ".playwright-mcp", "node_modules", "database/data"]
+
+[tool.ruff.lint]
+select = ["I"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

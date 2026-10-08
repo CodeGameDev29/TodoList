@@ -6,8 +6,8 @@
   "model": "claude-fable-5-1",
   "effortLevel": "high",
   "modelSettings": {
-    "claude-fable-5-1": {"effortLevel": "high", "maxEffortLevel": "xhigh"},
-    "claude-opus-5-5": {"effortLevel": "medium", "maxEffortLevel": "high"}
+    "claude-fable-5-1": { "effortLevel": "high", "maxEffortLevel": "xhigh" },
+    "claude-opus-5-5": { "effortLevel": "medium", "maxEffortLevel": "high" }
   },
   "ultracode": false,
   "workflowKeywordTriggerEnabled": false,
@@ -19,14 +19,81 @@
     "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
   },
   "hooks": {
-    "SessionStart": [{"hooks": [{"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_start.py\"", "timeout": 15}]}],
-    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/project_rules_reminder.py\"", "timeout": 10}]}],
-    "PostToolUse": [
-      {"matcher": "Bash", "hooks": [{"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/output_meter.py\"", "async": true, "timeout": 10}]},
-      {"matcher": "Edit|Write|MultiEdit", "hooks": [{"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/scripts/harness/sync_agent_harness.py\" --if-stale --quiet", "async": true, "timeout": 20}]}
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_start.py\"",
+            "timeout": 15
+          }
+        ]
+      }
     ],
-    "PostToolUseFailure": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/output_meter.py\"", "async": true, "timeout": 10}]}],
-    "SubagentStop": [{"hooks": [{"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/completion_referee.py\"", "timeout": 30}]}]
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/project_rules_reminder.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/output_meter.py\"",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/scripts/harness/sync_agent_harness.py\" --if-stale --quiet",
+            "async": true,
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/output_meter.py\"",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/hooks/completion_referee.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   },
-  "statusLine": {"type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/statusline.py\"", "padding": 0, "refreshInterval": 60}
+  "statusLine": {
+    "type": "command",
+    "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/py.sh\" \"$CLAUDE_PROJECT_DIR/.claude/statusline.py\"",
+    "padding": 0,
+    "refreshInterval": 60
+  }
 }

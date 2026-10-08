@@ -2,18 +2,18 @@
 
 Scope approved by the user: JavaScript React SPA, Node.js/Express REST API, SQLite persistence, selectable filtering/sorting and Docker containerization. Optional-enhancement contracts and acceptance rows are in [optional-enhancements.md](optional-enhancements.md). Authentication, multi-user behavior and external hosting deployment are excluded.
 
-| ID | Acceptance | Required evidence |
-| --- | --- | --- |
-| A1 | Empty list is usable; title is required; a new task has an ID, optional description/date, false completion, and server creation timestamp. | Browser creation and API tests |
-| A2 | List shows titles, due dates and completion; selecting a task loads its full details by ID. | Browser list/detail and API tests |
-| A3 | Editing preserves omitted fields; description/date can be cleared explicitly. | Browser edit/clear and API tests |
-| A4 | Complete and reopen persist; repeating the same state succeeds. | Browser toggle and API tests |
-| A5 | Delete requires UI confirmation and removes the task; cancelled deletion preserves it. | Browser delete/cancel and API tests |
-| A6 | Invalid types, blank titles, impossible dates and malformed bodies produce consistent 400 errors; unknown IDs produce 404. | API tests; browser invalid form |
-| A7 | Database reopen preserves tasks; initialization is repeatable and preserves existing rows; versioned forward migration and explicit rollback behavior are documented and tested on isolated databases. | Storage migration tests |
-| A8 | Loading, empty, saving and error states are visible; failures retain form input and permit retry; labels, keyboard access and narrow layout work. | Frontend tests and headed browser evidence |
-| A9 | A clean install can run, test and build using README commands; no secrets or runtime database committed. | Command logs and independent review |
-| A10 | All rows have independent judgment and exact implementation receives verifier review. | Judge and verifier reports |
+| ID  | Acceptance                                                                                                                                                                                             | Required evidence                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| A1  | Empty list is usable; title is required; a new task has an ID, optional description/date, false completion, and server creation timestamp.                                                             | Browser creation and API tests             |
+| A2  | List shows titles, due dates and completion; selecting a task loads its full details by ID.                                                                                                            | Browser list/detail and API tests          |
+| A3  | Editing preserves omitted fields; description/date can be cleared explicitly.                                                                                                                          | Browser edit/clear and API tests           |
+| A4  | Complete and reopen persist; repeating the same state succeeds.                                                                                                                                        | Browser toggle and API tests               |
+| A5  | Delete requires UI confirmation and removes the task; cancelled deletion preserves it.                                                                                                                 | Browser delete/cancel and API tests        |
+| A6  | Invalid types, blank titles, impossible dates and malformed bodies produce consistent 400 errors; unknown IDs produce 404.                                                                             | API tests; browser invalid form            |
+| A7  | Database reopen preserves tasks; initialization is repeatable and preserves existing rows; versioned forward migration and explicit rollback behavior are documented and tested on isolated databases. | Storage migration tests                    |
+| A8  | Loading, empty, saving and error states are visible; failures retain form input and permit retry; labels, keyboard access and narrow layout work.                                                      | Frontend tests and headed browser evidence |
+| A9  | A clean install can run, test and build using README commands; no secrets or runtime database committed.                                                                                               | Command logs and independent review        |
+| A10 | All rows have independent judgment and exact implementation receives verifier review.                                                                                                                  | Judge and verifier reports                 |
 
 ## API contract
 

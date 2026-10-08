@@ -18,18 +18,30 @@ async function fixture(t, options) {
     rmSync(directory, { recursive: true, force: true });
   });
   const url = `http://127.0.0.1:${server.address().port}`;
-  return { url, request: async (path = '', { method = 'GET', body, raw } = {}) => {
-    const response = await fetch(`${url}/api/todos${path}`, {
-      method, headers: { 'Content-Type': 'application/json' }, body: raw ?? (body === undefined ? undefined : JSON.stringify(body)),
-    });
-    return { status: response.status, location: response.headers.get('location'), body: response.status === 204 ? null : await response.json() };
-  } };
+  return {
+    url,
+    request: async (path = '', { method = 'GET', body, raw } = {}) => {
+      const response = await fetch(`${url}/api/todos${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: raw ?? (body === undefined ? undefined : JSON.stringify(body)),
+      });
+      return {
+        status: response.status,
+        location: response.headers.get('location'),
+        body: response.status === 204 ? null : await response.json(),
+      };
+    },
+  };
 }
 
 test('task lifecycle, clearing optional fields, repeated toggles and missing IDs', async (t) => {
   const { request } = await fixture(t);
   assert.deepEqual((await request()).body, []);
-  const created = await request('', { method: 'POST', body: { title: '  Interview task  ', description: 'Notes', dueDate: '2024-02-29' } });
+  const created = await request('', {
+    method: 'POST',
+    body: { title: '  Interview task  ', description: 'Notes', dueDate: '2024-02-29' },
+  });
   assert.equal(created.status, 201);
   assert.match(created.body.id, /^[0-9a-f-]{36}$/);
   assert.equal(created.location, `/api/todos/${created.body.id}`);
@@ -47,12 +59,19 @@ test('task lifecycle, clearing optional fields, repeated toggles and missing IDs
     assert.equal(response.status, 200);
     assert.equal(response.body.isCompleted, state);
   }
-  const cleared = await request(path, { method: 'PATCH', body: { description: null, dueDate: null } });
+  const cleared = await request(path, {
+    method: 'PATCH',
+    body: { description: null, dueDate: null },
+  });
   assert.equal(cleared.body.description, null);
   assert.equal(cleared.body.dueDate, null);
   assert.deepEqual((await request()).body, [cleared.body]);
   assert.equal((await request(path, { method: 'DELETE' })).status, 204);
-  for (const options of [{}, { method: 'PATCH', body: { title: 'Updated' } }, { method: 'DELETE' }]) {
+  for (const options of [
+    {},
+    { method: 'PATCH', body: { title: 'Updated' } },
+    { method: 'DELETE' },
+  ]) {
     const response = await request(path, options);
     assert.equal(response.status, 404);
     assert.equal(response.body.error.message, 'Task not found.');
@@ -72,18 +91,34 @@ test('defaults, duplicate titles, past dates and full calendar range', async (t)
 
 test('invalid types, dates, fields, malformed bodies and empty updates', async (t) => {
   const { request } = await fixture(t);
-  const bodies = [null, [], {}, { title: ' ' }, { title: 1 }, { title: 'x'.repeat(201) },
-    { title: 'ok', description: false }, { title: 'ok', description: 'x'.repeat(5001) },
-    { title: 'ok', dueDate: '2025-02-29' }, { title: 'ok', dueDate: '2024-04-31' },
-    { title: 'ok', dueDate: '0000-01-01' }, { title: 'ok', dueDate: '2024-2-01' },
-    { title: 'ok', dueDate: 1 }, { title: 'ok', isCompleted: true }, { title: 'ok', id: 'mine' }];
+  const bodies = [
+    null,
+    [],
+    {},
+    { title: ' ' },
+    { title: 1 },
+    { title: 'x'.repeat(201) },
+    { title: 'ok', description: false },
+    { title: 'ok', description: 'x'.repeat(5001) },
+    { title: 'ok', dueDate: '2025-02-29' },
+    { title: 'ok', dueDate: '2024-04-31' },
+    { title: 'ok', dueDate: '0000-01-01' },
+    { title: 'ok', dueDate: '2024-2-01' },
+    { title: 'ok', dueDate: 1 },
+    { title: 'ok', isCompleted: true },
+    { title: 'ok', id: 'mine' },
+  ];
   for (const body of bodies) {
     const response = await request('', { method: 'POST', body });
     assert.equal(response.status, 400, JSON.stringify(body));
     assert.equal(typeof response.body.error.message, 'string');
   }
   assert.equal((await request('', { method: 'POST', raw: '{oops' })).status, 400);
-  assert.equal((await request('', { method: 'POST', raw: JSON.stringify({ title: 'x'.repeat(110000) }) })).status, 400);
+  assert.equal(
+    (await request('', { method: 'POST', raw: JSON.stringify({ title: 'x'.repeat(110000) }) }))
+      .status,
+    400,
+  );
   const created = await request('', { method: 'POST', body: { title: 'Keep' } });
   for (const body of [{}, { title: null }, { isCompleted: 1 }, { createdAt: 'overwrite' }]) {
     assert.equal((await request(`/${created.body.id}`, { method: 'PATCH', body })).status, 400);
@@ -93,7 +128,10 @@ test('invalid types, dates, fields, malformed bodies and empty updates', async (
 
 test('POST rejects unknown __proto__ key with 400 without creating a task', async (t) => {
   const { request } = await fixture(t);
-  const response = await request('', { method: 'POST', raw: '{"title":"Proto key","__proto__":{}}' });
+  const response = await request('', {
+    method: 'POST',
+    raw: '{"title":"Proto key","__proto__":{}}',
+  });
   assert.equal(response.status, 400);
   assert.equal(Object.hasOwn(response.body.error.fields, '__proto__'), true);
   assert.equal(response.body.error.fields.__proto__, 'Unknown field.');
@@ -102,7 +140,10 @@ test('POST rejects unknown __proto__ key with 400 without creating a task', asyn
 
 test('PATCH rejects unknown-only __proto__ key with 400 without mutating the task', async (t) => {
   const { request } = await fixture(t);
-  const created = await request('', { method: 'POST', body: { title: 'Keep', description: 'Original' } });
+  const created = await request('', {
+    method: 'POST',
+    body: { title: 'Keep', description: 'Original' },
+  });
   const path = `/${created.body.id}`;
   const response = await request(path, { method: 'PATCH', raw: '{"__proto__":{}}' });
   assert.equal(response.status, 400);
@@ -126,35 +167,70 @@ test('production SPA fallback preserves JSON unknown API response', async (t) =>
 test('list filters combine with sorting and use the UTC day boundary', async (t) => {
   const { request } = await fixture(t, { now: () => new Date('2026-10-07T00:30:00+02:00') });
   const tasks = [];
-  for (const [title, dueDate] of [['Yesterday', '2026-10-05'], ['Today', '2026-10-06'], ['Tomorrow', '2026-10-07'], ['Undated', null], ['Completed', '2026-10-04'], ['Another overdue', '2026-10-03']]) {
+  for (const [title, dueDate] of [
+    ['Yesterday', '2026-10-05'],
+    ['Today', '2026-10-06'],
+    ['Tomorrow', '2026-10-07'],
+    ['Undated', null],
+    ['Completed', '2026-10-04'],
+    ['Another overdue', '2026-10-03'],
+  ]) {
     tasks.push((await request('', { method: 'POST', body: { title, dueDate } })).body);
   }
   await request(`/${tasks[4].id}`, { method: 'PATCH', body: { isCompleted: true } });
   const names = async (query) => (await request(query)).body.map((task) => task.title);
-  assert.deepEqual(await names('?status=overdue&sortBy=dueDate&order=asc'), ['Another overdue', 'Yesterday']);
-  assert.deepEqual(await names('?status=overdue&sortBy=title&order=desc'), ['Yesterday', 'Another overdue']);
+  assert.deepEqual(await names('?status=overdue&sortBy=dueDate&order=asc'), [
+    'Another overdue',
+    'Yesterday',
+  ]);
+  assert.deepEqual(await names('?status=overdue&sortBy=title&order=desc'), [
+    'Yesterday',
+    'Another overdue',
+  ]);
   assert.deepEqual(await names('?status=completed'), ['Completed']);
   assert.equal((await names('?status=incomplete')).length, 5);
   assert.equal((await names('?status=all')).length, 6);
-  assert.deepEqual((await request()).body, (await request('?status=all&sortBy=createdAt&order=desc')).body);
+  assert.deepEqual(
+    (await request()).body,
+    (await request('?status=all&sortBy=createdAt&order=desc')).body,
+  );
   // Completing an overdue task removes it from the active view; reopening restores it.
   await request(`/${tasks[0].id}`, { method: 'PATCH', body: { isCompleted: true } });
   assert.deepEqual(await names('?status=overdue'), ['Another overdue']);
   await request(`/${tasks[0].id}`, { method: 'PATCH', body: { isCompleted: false } });
-  assert.deepEqual(await names('?status=overdue&sortBy=dueDate&order=asc'), ['Another overdue', 'Yesterday']);
+  assert.deepEqual(await names('?status=overdue&sortBy=dueDate&order=asc'), [
+    'Another overdue',
+    'Yesterday',
+  ]);
 });
 
 test('list query rejects invalid, repeated, unknown and structured parameters consistently', async (t) => {
   const { request } = await fixture(t);
   for (const query of [
-    '?status=', '?status=active', '?status=true', '?sortBy=1', '?sortBy=due_date', '?order=ASC',
-    '?status=all&status=all', '?sortBy=title&sortBy=dueDate', '?order=asc&order=desc',
-    '?status[]=all', '?status[mode]=completed', '?sortBy[0]=title', '?unknown=1', '?__proto__=x',
-    '?constructor=x', '?sortBy=title%20DESC%3B%20DROP%20TABLE%20todos',
+    '?status=',
+    '?status=active',
+    '?status=true',
+    '?sortBy=1',
+    '?sortBy=due_date',
+    '?order=ASC',
+    '?status=all&status=all',
+    '?sortBy=title&sortBy=dueDate',
+    '?order=asc&order=desc',
+    '?status[]=all',
+    '?status[mode]=completed',
+    '?sortBy[0]=title',
+    '?unknown=1',
+    '?__proto__=x',
+    '?constructor=x',
+    '?sortBy=title%20DESC%3B%20DROP%20TABLE%20todos',
   ]) {
     const response = await request(query);
     assert.equal(response.status, 400, query);
-    assert.equal(response.body.error.message, 'Please correct the invalid query parameters.', query);
+    assert.equal(
+      response.body.error.message,
+      'Please correct the invalid query parameters.',
+      query,
+    );
     assert.ok(Object.keys(response.body.error.fields).length > 0, query);
   }
   assert.deepEqual((await request()).body, []);

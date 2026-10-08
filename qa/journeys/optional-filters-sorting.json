@@ -6,16 +6,119 @@
   "base_url_env": "TODOLIST_OPTIONAL_URL",
   "environment_notes": "Use an isolated empty database and dev servers. Create Alpha without a due date, Bravo due 2000-01-01, Charlie due 2099-12-31, Delta due current UTC day. Create sequentially using the visible form. Mark Alpha completed. Do not use the user's demo database.",
   "steps": [
-    {"id":"create-fixture","expectation":"Four tasks created through UI with default newest-first order Delta, Charlie, Bravo, Alpha; Alpha complete.","tdd_expect":"PASS","actions":[{"type":"navigate","url":"/"},{"type":"fill","selector":"task form","value":"Alpha, Bravo, Charlie, Delta with described dates"},{"type":"click","selector":"Add task for each fixture"},{"type":"check","selector":"Mark Alpha complete"},{"type":"assert_visible","selector":"four task rows and labeled controls"}]},
-    {"id":"completed","expectation":"Completed filter shows only Alpha.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Filter","value":"Completed"},{"type":"assert_text","text":"Alpha"}]},
-    {"id":"incomplete","expectation":"Incomplete filter shows Delta, Charlie, Bravo and excludes Alpha.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Filter","value":"Incomplete"},{"type":"assert_visible","selector":"three incomplete task rows"}]},
-    {"id":"overdue","expectation":"Overdue shows only Bravo; today's Delta, future Charlie and undated completed Alpha are excluded.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Filter","value":"Overdue"},{"type":"assert_text","text":"Bravo"}]},
-    {"id":"title-ascending","expectation":"All tasks sorted by title ascending appear Alpha, Bravo, Charlie, Delta.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Filter","value":"All tasks"},{"type":"select","selector":"Sort by","value":"Title"},{"type":"select","selector":"Order","value":"Ascending"},{"type":"assert_visible","selector":"ascending title list"}]},
-    {"id":"title-descending","expectation":"Title descending reverses the list.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Order","value":"Descending"},{"type":"assert_visible","selector":"Delta, Charlie, Bravo, Alpha rows"}]},
-    {"id":"due-ascending","expectation":"Due date ascending shows Bravo, Delta, Charlie, Alpha; undated task last.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Sort by","value":"Due date"},{"type":"select","selector":"Order","value":"Ascending"},{"type":"assert_visible","selector":"due date ascending list"}]},
-    {"id":"due-descending","expectation":"Due date descending shows Charlie, Delta, Bravo, Alpha; undated task still last.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Order","value":"Descending"},{"type":"assert_visible","selector":"due date descending list"}]},
-    {"id":"created-ascending","expectation":"Creation ascending shows original insertion order Alpha, Bravo, Charlie, Delta.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Sort by","value":"Created date"},{"type":"select","selector":"Order","value":"Ascending"},{"type":"assert_visible","selector":"insertion order list"}]},
-    {"id":"combined-mutation","expectation":"Overdue + Title ascending retains controls after completing Bravo; list shows no matches; switching to Completed reveals Alpha and Bravo.","tdd_expect":"PASS","actions":[{"type":"select","selector":"Filter","value":"Overdue"},{"type":"select","selector":"Sort by","value":"Title"},{"type":"check","selector":"Mark Bravo complete"},{"type":"assert_visible","selector":"no matching tasks state"},{"type":"select","selector":"Filter","value":"Completed"},{"type":"assert_visible","selector":"Alpha and Bravo"}]},
-    {"id":"narrow-keyboard","expectation":"At 390px width controls remain labeled and usable with visible keyboard focus.","tdd_expect":"PASS","actions":[{"type":"press","selector":"Filter","value":"Tab"},{"type":"screenshot","expectation":"Narrow viewport controls and keyboard focus"}]}
+    {
+      "id": "create-fixture",
+      "expectation": "Four tasks created through UI with default newest-first order Delta, Charlie, Bravo, Alpha; Alpha complete.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "navigate", "url": "/" },
+        {
+          "type": "fill",
+          "selector": "task form",
+          "value": "Alpha, Bravo, Charlie, Delta with described dates"
+        },
+        { "type": "click", "selector": "Add task for each fixture" },
+        { "type": "check", "selector": "Mark Alpha complete" },
+        { "type": "assert_visible", "selector": "four task rows and labeled controls" }
+      ]
+    },
+    {
+      "id": "completed",
+      "expectation": "Completed filter shows only Alpha.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Filter", "value": "Completed" },
+        { "type": "assert_text", "text": "Alpha" }
+      ]
+    },
+    {
+      "id": "incomplete",
+      "expectation": "Incomplete filter shows Delta, Charlie, Bravo and excludes Alpha.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Filter", "value": "Incomplete" },
+        { "type": "assert_visible", "selector": "three incomplete task rows" }
+      ]
+    },
+    {
+      "id": "overdue",
+      "expectation": "Overdue shows only Bravo; today's Delta, future Charlie and undated completed Alpha are excluded.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Filter", "value": "Overdue" },
+        { "type": "assert_text", "text": "Bravo" }
+      ]
+    },
+    {
+      "id": "title-ascending",
+      "expectation": "All tasks sorted by title ascending appear Alpha, Bravo, Charlie, Delta.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Filter", "value": "All tasks" },
+        { "type": "select", "selector": "Sort by", "value": "Title" },
+        { "type": "select", "selector": "Order", "value": "Ascending" },
+        { "type": "assert_visible", "selector": "ascending title list" }
+      ]
+    },
+    {
+      "id": "title-descending",
+      "expectation": "Title descending reverses the list.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Order", "value": "Descending" },
+        { "type": "assert_visible", "selector": "Delta, Charlie, Bravo, Alpha rows" }
+      ]
+    },
+    {
+      "id": "due-ascending",
+      "expectation": "Due date ascending shows Bravo, Delta, Charlie, Alpha; undated task last.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Sort by", "value": "Due date" },
+        { "type": "select", "selector": "Order", "value": "Ascending" },
+        { "type": "assert_visible", "selector": "due date ascending list" }
+      ]
+    },
+    {
+      "id": "due-descending",
+      "expectation": "Due date descending shows Charlie, Delta, Bravo, Alpha; undated task still last.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Order", "value": "Descending" },
+        { "type": "assert_visible", "selector": "due date descending list" }
+      ]
+    },
+    {
+      "id": "created-ascending",
+      "expectation": "Creation ascending shows original insertion order Alpha, Bravo, Charlie, Delta.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Sort by", "value": "Created date" },
+        { "type": "select", "selector": "Order", "value": "Ascending" },
+        { "type": "assert_visible", "selector": "insertion order list" }
+      ]
+    },
+    {
+      "id": "combined-mutation",
+      "expectation": "Overdue + Title ascending retains controls after completing Bravo; list shows no matches; switching to Completed reveals Alpha and Bravo.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "select", "selector": "Filter", "value": "Overdue" },
+        { "type": "select", "selector": "Sort by", "value": "Title" },
+        { "type": "check", "selector": "Mark Bravo complete" },
+        { "type": "assert_visible", "selector": "no matching tasks state" },
+        { "type": "select", "selector": "Filter", "value": "Completed" },
+        { "type": "assert_visible", "selector": "Alpha and Bravo" }
+      ]
+    },
+    {
+      "id": "narrow-keyboard",
+      "expectation": "At 390px width controls remain labeled and usable with visible keyboard focus.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "press", "selector": "Filter", "value": "Tab" },
+        { "type": "screenshot", "expectation": "Narrow viewport controls and keyboard focus" }
+      ]
+    }
   ]
 }
