@@ -1,1 +1,3 @@
-print('Completion reminder only: report evidence and obtain independent judgment; this hook does not validate transcripts.')
+print(
+    "Completion reminder only: report formatting and test evidence, obtain independent code-reviewer review and QA judgment; this hook does not validate transcripts."
+)

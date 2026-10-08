@@ -1,6 +1,6 @@
 ---
 name: bug-harness
-description: "Coordinate the future TodoList acceptance-to-judgment bug loop."
+description: 'Coordinate the TodoList acceptance-to-judgment bug loop.'
 ---
 
 # Bug harness

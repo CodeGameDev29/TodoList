@@ -1,9 +1,68 @@
 {
   "description": "TodoList harness lifecycle hooks",
   "hooks": {
-    "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/py.sh .claude/hooks/session_start.py", "commandWindows": ".claude/hooks/py.cmd .claude/hooks/session_start.py", "timeout": 10, "statusMessage": "Checking TodoList harness"}]}],
-    "UserPromptSubmit": [{"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/py.sh .claude/hooks/project_rules_reminder.py", "commandWindows": ".claude/hooks/py.cmd .claude/hooks/project_rules_reminder.py", "timeout": 10, "statusMessage": "Applying project contract"}]}],
-    "PostToolUse": [{"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/py.sh .claude/hooks/output_meter.py", "commandWindows": ".claude/hooks/py.cmd .claude/hooks/output_meter.py", "timeout": 10, "async": true}, {"type": "command", "command": ".claude/hooks/py.sh scripts/harness/sync_agent_harness.py --if-stale --quiet", "commandWindows": ".claude/hooks/py.cmd scripts/harness/sync_agent_harness.py --if-stale --quiet", "timeout": 30, "async": true}]}],
-    "SubagentStop": [{"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/py.sh .claude/hooks/completion_referee.py", "commandWindows": ".claude/hooks/py.cmd .claude/hooks/completion_referee.py", "timeout": 10, "statusMessage": "Recording independent-review reminder"}]}]
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/py.sh .claude/hooks/session_start.py",
+            "commandWindows": ".claude/hooks/py.cmd .claude/hooks/session_start.py",
+            "timeout": 10,
+            "statusMessage": "Checking TodoList harness"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/py.sh .claude/hooks/project_rules_reminder.py",
+            "commandWindows": ".claude/hooks/py.cmd .claude/hooks/project_rules_reminder.py",
+            "timeout": 10,
+            "statusMessage": "Applying project contract"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/py.sh .claude/hooks/output_meter.py",
+            "commandWindows": ".claude/hooks/py.cmd .claude/hooks/output_meter.py",
+            "timeout": 10,
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/py.sh scripts/harness/sync_agent_harness.py --if-stale --quiet",
+            "commandWindows": ".claude/hooks/py.cmd scripts/harness/sync_agent_harness.py --if-stale --quiet",
+            "timeout": 30,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/py.sh .claude/hooks/completion_referee.py",
+            "commandWindows": ".claude/hooks/py.cmd .claude/hooks/completion_referee.py",
+            "timeout": 10,
+            "statusMessage": "Recording independent-review reminder"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: exploratory-qa
-description: "Explore a future TodoList UI in headed Playwright while producing classifiable evidence."
+description: 'Explore the TodoList UI in headed Playwright while producing classifiable evidence.'
 ---
 
 # Exploratory QA

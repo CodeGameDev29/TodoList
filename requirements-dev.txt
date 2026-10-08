@@ -1,0 +1,2 @@
+# Python formatting only; application runtime dependencies are managed by npm.
+ruff==0.16.10

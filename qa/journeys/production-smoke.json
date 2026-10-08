@@ -5,8 +5,34 @@
   "kind": "ui-only",
   "base_url_env": "TODOLIST_PRODUCTION_URL",
   "steps": [
-    {"id":"empty","expectation":"Built SPA opens on the production server with a usable empty list.","tdd_expect":"PASS","actions":[{"type":"navigate","url":"/"},{"type":"assert_visible","selector":"empty list and create form"}]},
-    {"id":"create-details","expectation":"Creating a task updates the list and full task details through the same-origin API.","tdd_expect":"PASS","actions":[{"type":"fill","selector":"title field","value":"Production smoke task"},{"type":"click","selector":"create submit button"},{"type":"assert_text","text":"Production smoke task"}]},
-    {"id":"delete","expectation":"Deleting the task restores the empty list.","tdd_expect":"PASS","actions":[{"type":"click","selector":"task delete action"},{"type":"press","selector":"delete confirmation","value":"Enter"},{"type":"assert_visible","selector":"empty state"}]}
+    {
+      "id": "empty",
+      "expectation": "Built SPA opens on the production server with a usable empty list.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "navigate", "url": "/" },
+        { "type": "assert_visible", "selector": "empty list and create form" }
+      ]
+    },
+    {
+      "id": "create-details",
+      "expectation": "Creating a task updates the list and full task details through the same-origin API.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "fill", "selector": "title field", "value": "Production smoke task" },
+        { "type": "click", "selector": "create submit button" },
+        { "type": "assert_text", "text": "Production smoke task" }
+      ]
+    },
+    {
+      "id": "delete",
+      "expectation": "Deleting the task restores the empty list.",
+      "tdd_expect": "PASS",
+      "actions": [
+        { "type": "click", "selector": "task delete action" },
+        { "type": "press", "selector": "delete confirmation", "value": "Enter" },
+        { "type": "assert_visible", "selector": "empty state" }
+      ]
+    }
   ]
 }

@@ -1,1 +1,1 @@
-print("TodoList | harness-only | independent QA required")
+print("TodoList | React + REST API | formatting and independent review required")

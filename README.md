@@ -88,13 +88,13 @@ Authentication and multi-user behavior are outside the application scope. Extern
 
 Base path: `/api`. Requests use `Content-Type: application/json`.
 
-| Method and path | Result |
-| --- | --- |
-| `POST /todos` | `201`, created task, and `Location` header |
-| `GET /todos` | `200`, filtered and sorted task array |
-| `GET /todos/:id` | `200`, task |
-| `PATCH /todos/:id` | `200`, updated task |
-| `DELETE /todos/:id` | `204`, no body |
+| Method and path     | Result                                     |
+| ------------------- | ------------------------------------------ |
+| `POST /todos`       | `201`, created task, and `Location` header |
+| `GET /todos`        | `200`, filtered and sorted task array      |
+| `GET /todos/:id`    | `200`, task                                |
+| `PATCH /todos/:id`  | `200`, updated task                        |
+| `DELETE /todos/:id` | `204`, no body                             |
 
 Examples using curl in a POSIX shell:
 
@@ -121,17 +121,31 @@ Errors have the shape `{"error":{"message":"...","fields":{"title":"..."}}}`; fi
 
 List parameters are optional and accept the following values:
 
-| Parameter | Values | Default |
-| --- | --- | --- |
-| `status` | `all`, `incomplete`, `completed`, `overdue` | `all` |
-| `sortBy` | `createdAt`, `dueDate`, `title` | `createdAt` |
-| `order` | `asc`, `desc` | `desc` |
+| Parameter | Values                                      | Default     |
+| --------- | ------------------------------------------- | ----------- |
+| `status`  | `all`, `incomplete`, `completed`, `overdue` | `all`       |
+| `sortBy`  | `createdAt`, `dueDate`, `title`             | `createdAt` |
+| `order`   | `asc`, `desc`                               | `desc`      |
 
 Unknown, repeated, or invalid query parameters return `400` using the same error shape. Listing continues to return a JSON task array.
 
 ## Verification
 
 `npm test` runs API/storage integration tests and React/API-client tests. Coverage includes task lifecycle, write and query validation, overdue boundaries, combined filtering and sorting, undated tasks last in both directions, stable ties, persistence, active-view refreshes, and failed request recovery. `npm run build` verifies the production frontend bundle. Browser acceptance and independent review follow [qa/acceptance.md](qa/acceptance.md) and [qa/optional-enhancements.md](qa/optional-enhancements.md).
+
+## Formatting and code review
+
+The repository is formatted for human review with pinned Prettier and Ruff versions. Prettier covers JavaScript/JSX, CSS, HTML, JSON, YAML, and Markdown; Ruff formats Python and sorts its imports. Install the development tools with Node.js and Python 3.11 or newer:
+
+```sh
+npm ci
+python -m pip install -r requirements-dev.txt
+npm run format:check
+```
+
+Use `npm run format` to apply formatting and regenerate harness mirrors. JavaScript uses two-space indentation and a 100-column wrapping target; Python uses four spaces and an 88-column target. Formatter checks also run in CI. Generated mirrors are excluded from direct formatting and checked against their canonical sources; lockfiles, dependencies, build output, user files, and execution artifacts are excluded. SQL, TOML, Dockerfile, and command wrappers receive manual layout review.
+
+The harness requires an independent, read-only `code-reviewer` before handoff. Reviewers apply [the researched code-review rubric](.claude/project/CODE-REVIEW-RUBRIC.md), prioritizing indentation and readability, then correctness, robustness, and maintainability. Every applicable rule receives a verdict with evidence, and findings identify their rule IDs and severity. Formatting checks complement code review and tests; they do not establish correctness on their own.
 
 ## Harness checks
 
@@ -145,3 +159,5 @@ python -m unittest discover -s tests
 ```
 
 Full harness validation requires the pinned Codex CLI `0.160.1`. Browser acceptance uses headed Playwright MCP evidence and independent judgment. User-owned `.idea` files, secrets, dependencies, build outputs, databases, and run artifacts are ignored.
+
+Semantic CLI checks use a disposable, credential-free home under `.qa-artifacts/harness-validation`, leaving your normal CLI configuration untouched. Cleanup retries brief file locks and fails with the fixture path if it cannot finish. CI limits harness/application jobs to 10 minutes and container verification to 20 minutes; a timeout does not count as a passing check.

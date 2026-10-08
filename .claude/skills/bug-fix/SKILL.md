@@ -1,8 +1,12 @@
 ---
 name: bug-fix
-description: "Fix a classified future bug through RED/GREEN evidence and independent verification."
+description: 'Fix a classified bug through RED/GREEN evidence and independent verification.'
 ---
 
 # Bug fix
 
-Precondition: accepted bug class and independent RED judgment. Change only the diagnosed surface, rerun the same journey to create GREEN evidence, then send the exact diff and evidence to verifier. Done means an independent GREEN judgment and verifier outcome.
+Precondition: accepted bug class and independent RED judgment. Change only the diagnosed surface, rerun the same journey to create GREEN evidence, then send the exact diff and evidence to verifier.
+
+Before handoff, run the documented repository formatting checks, format canonical harness sources, and regenerate mirrors. Delegate independent review to the read-only `code-reviewer` at high effort using `qa/code-review-acceptance.md` and `.claude/project/CODE-REVIEW-RUBRIC.md`. Supply the exact diff and regression evidence; require assessments and findings mapped to rubric rule IDs.
+
+Done means an independent GREEN judgment, evidence-backed code review, and verifier outcome.

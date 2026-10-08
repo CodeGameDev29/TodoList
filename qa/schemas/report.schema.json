@@ -1,1 +1,35 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","required":["schema_version","id","journey_id","phase","complete","run_valid","runner","started_at","finished_at","browser","wall_clock_ms","steps","judge","change_id"],"properties":{"phase":{"enum":["red","green","regression"]},"complete":{"const":true},"run_valid":{"const":true}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "journey_id",
+    "phase",
+    "complete",
+    "run_valid",
+    "runner",
+    "started_at",
+    "finished_at",
+    "browser",
+    "wall_clock_ms",
+    "steps",
+    "judge",
+    "change_id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+      "not": {
+        "pattern": "^(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])$"
+      }
+    },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "wall_clock_ms": { "type": "number", "minimum": 0 },
+    "phase": { "enum": ["red", "green", "regression"] },
+    "complete": { "const": true },
+    "run_valid": { "const": true }
+  }
+}

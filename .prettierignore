@@ -1,0 +1,25 @@
+# Generated mirrors are checked by the synchronization script.
+AGENTS.md
+.agents/
+.codex/agents/
+
+# Dependencies, build output, local data, user settings, and run artifacts.
+node_modules/
+package-lock.json
+dist/
+build/
+coverage/
+.idea/
+.qa-artifacts/
+.playwright-mcp/
+.codex/tmp/
+.aws/
+.env
+.env.*
+database/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+__pycache__/
+.pytest_cache/
+.ruff_cache/

@@ -4,8 +4,12 @@ import userEvent from '@testing-library/user-event';
 import App from './App.jsx';
 
 const initialTask = {
-  id: 'task-1', title: 'Prepare interview', description: 'Review the design',
-  dueDate: '2026-10-10', isCompleted: false, createdAt: '2026-10-06T12:00:00.000Z',
+  id: 'task-1',
+  title: 'Prepare interview',
+  description: 'Review the design',
+  dueDate: '2026-10-10',
+  isCompleted: false,
+  createdAt: '2026-10-06T12:00:00.000Z',
 };
 
 function respond(data, status = 200) {
@@ -13,48 +17,65 @@ function respond(data, status = 200) {
 }
 
 function mockServer(initial = []) {
-  let tasks = initial.map(task => ({ ...task }));
+  let tasks = initial.map((task) => ({ ...task }));
   const fetch = vi.fn(async (url, options = {}) => {
     const method = options.method ?? 'GET';
     const parsed = new URL(url, 'http://localhost');
     const id = parsed.pathname.split('/')[3];
     if (method === 'GET') {
-      if (id) return respond(tasks.find(task => task.id === id));
+      if (id) return respond(tasks.find((task) => task.id === id));
       const status = parsed.searchParams.get('status') ?? 'all';
       const sortBy = parsed.searchParams.get('sortBy') ?? 'createdAt';
       const direction = parsed.searchParams.get('order') === 'asc' ? 1 : -1;
       const today = new Date().toISOString().slice(0, 10);
-      const result = tasks.filter(task => status === 'all' ||
-        (status === 'completed' && task.isCompleted) ||
-        (status === 'incomplete' && !task.isCompleted) ||
-        (status === 'overdue' && !task.isCompleted && task.dueDate && task.dueDate < today));
+      const result = tasks.filter(
+        (task) =>
+          status === 'all' ||
+          (status === 'completed' && task.isCompleted) ||
+          (status === 'incomplete' && !task.isCompleted) ||
+          (status === 'overdue' && !task.isCompleted && task.dueDate && task.dueDate < today),
+      );
       result.sort((a, b) => {
         if (sortBy === 'dueDate' && (!a.dueDate || !b.dueDate)) {
           if (!!a.dueDate !== !!b.dueDate) return a.dueDate ? -1 : 1;
         }
         const first = String(a[sortBy] ?? '').toLowerCase();
         const second = String(b[sortBy] ?? '').toLowerCase();
-        return (first < second ? -1 : first > second ? 1 : 0) * direction || a.id.localeCompare(b.id);
+        return (
+          (first < second ? -1 : first > second ? 1 : 0) * direction || a.id.localeCompare(b.id)
+        );
       });
       return respond(result);
     }
     if (method === 'POST') {
-      const task = { ...initialTask, ...JSON.parse(options.body), id: 'task-new', isCompleted: false };
+      const task = {
+        ...initialTask,
+        ...JSON.parse(options.body),
+        id: 'task-new',
+        isCompleted: false,
+      };
       tasks = [task, ...tasks];
       return respond(task, 201);
     }
     if (method === 'PATCH') {
-      tasks = tasks.map(task => task.id === id ? { ...task, ...JSON.parse(options.body) } : task);
-      return respond(tasks.find(task => task.id === id));
+      tasks = tasks.map((task) =>
+        task.id === id ? { ...task, ...JSON.parse(options.body) } : task,
+      );
+      return respond(tasks.find((task) => task.id === id));
     }
-    if (method === 'DELETE') { tasks = tasks.filter(task => task.id !== id); return respond(null, 204); }
+    if (method === 'DELETE') {
+      tasks = tasks.filter((task) => task.id !== id);
+      return respond(null, 204);
+    }
     throw new Error('Unexpected request');
   });
   vi.stubGlobal('fetch', fetch);
   return fetch;
 }
 
-beforeEach(() => { vi.restoreAllMocks(); });
+beforeEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('task workflow', () => {
   it('creates, fetches details, clears optional fields, completes, reopens and confirms deletion', async () => {
@@ -68,16 +89,23 @@ describe('task workflow', () => {
     await user.type(screen.getByLabelText(/Due date/), '2026-10-10');
     await user.click(screen.getByRole('button', { name: 'Add task' }));
     await screen.findByRole('button', { name: 'Edit task' });
-    expect(fetch).toHaveBeenCalledWith('/api/todos/task-new', expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/todos/task-new',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     expect(screen.getByText('Review the design')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Edit task' }));
     await user.clear(screen.getByLabelText(/Description/));
     await user.clear(screen.getByLabelText(/Due date/));
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
     await screen.findByText('No description.');
-    expect(fetch).toHaveBeenCalledWith('/api/todos/task-new', expect.objectContaining({
-      method: 'PATCH', body: JSON.stringify({ title: 'Prepare interview', description: null, dueDate: null }),
-    }));
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/todos/task-new',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ title: 'Prepare interview', description: null, dueDate: null }),
+      }),
+    );
     await user.click(screen.getByRole('checkbox', { name: 'Mark Prepare interview complete' }));
     await screen.findByRole('checkbox', { name: 'Mark Prepare interview incomplete' });
     await user.click(screen.getByRole('checkbox', { name: 'Mark Prepare interview incomplete' }));
@@ -141,7 +169,12 @@ describe('task workflow', () => {
     await screen.findByText('A fresh start');
     await user.type(screen.getByLabelText(/Title/), 'Slow save');
     let finish;
-    fetch.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    fetch.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
     await user.click(screen.getByRole('button', { name: 'Add task' }));
     expect(screen.getByLabelText(/Title/)).toBeDisabled();
     expect(screen.getByRole('button', { name: 'New task' })).toBeDisabled();
@@ -160,14 +193,24 @@ describe('task workflow', () => {
     await screen.findByRole('checkbox', { name: 'Mark Prepare interview complete' });
     await user.selectOptions(screen.getByLabelText('Filter'), 'completed');
     await screen.findByRole('checkbox', { name: 'Mark Alpha incomplete' });
-    expect(screen.queryByRole('checkbox', { name: 'Mark Prepare interview complete' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: 'Mark Prepare interview complete' }),
+    ).not.toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText('Sort by'), 'title');
     await user.selectOptions(screen.getByLabelText('Order'), 'asc');
-    await waitFor(() => expect(screen.getAllByRole('checkbox').map(item => item.getAttribute('aria-label')))
-      .toEqual(['Mark Alpha incomplete', 'Mark Zebra incomplete']));
-    expect(fetch).toHaveBeenCalledWith('/api/todos?status=completed&sortBy=title&order=asc', expect.any(Object));
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('checkbox').map((item) => item.getAttribute('aria-label')),
+      ).toEqual(['Mark Alpha incomplete', 'Mark Zebra incomplete']),
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/todos?status=completed&sortBy=title&order=asc',
+      expect.any(Object),
+    );
     await user.selectOptions(screen.getByLabelText('Order'), 'desc');
-    await waitFor(() => expect(screen.getAllByRole('checkbox')[0]).toHaveAccessibleName('Mark Zebra incomplete'));
+    await waitFor(() =>
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAccessibleName('Mark Zebra incomplete'),
+    );
   });
 
   it('refreshes the active filtered view after completion and retains its controls', async () => {
@@ -186,7 +229,9 @@ describe('task workflow', () => {
     expect(screen.getByLabelText('Filter')).toHaveValue('incomplete');
     expect(screen.getByLabelText('Sort by')).toHaveValue('dueDate');
     expect(screen.getByLabelText('Order')).toHaveValue('asc');
-    expect(fetch.mock.calls.at(-1)[0]).toBe('/api/todos?status=incomplete&sortBy=dueDate&order=asc');
+    expect(fetch.mock.calls.at(-1)[0]).toBe(
+      '/api/todos?status=incomplete&sortBy=dueDate&order=asc',
+    );
     await user.selectOptions(screen.getByLabelText('Filter'), 'completed');
     await screen.findByRole('checkbox', { name: 'Mark Prepare interview incomplete' });
   });
@@ -195,7 +240,13 @@ describe('task workflow', () => {
     mockServer([
       { ...initialTask, id: 'past', title: 'Past deadline', dueDate: '2000-01-01' },
       { ...initialTask, id: 'future', title: 'Future deadline', dueDate: '9999-01-01' },
-      { ...initialTask, id: 'done', title: 'Already done', dueDate: '2000-01-01', isCompleted: true },
+      {
+        ...initialTask,
+        id: 'done',
+        title: 'Already done',
+        dueDate: '2000-01-01',
+        isCompleted: true,
+      },
       { ...initialTask, id: 'undated', title: 'No deadline', dueDate: null },
     ]);
     const user = userEvent.setup();
@@ -241,7 +292,12 @@ describe('task workflow', () => {
     render(<App />);
     await screen.findByRole('checkbox');
     let finishOlder;
-    fetch.mockImplementationOnce(() => new Promise(resolve => { finishOlder = resolve; }));
+    fetch.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishOlder = resolve;
+        }),
+    );
     await user.selectOptions(screen.getByLabelText('Filter'), 'incomplete');
     await user.selectOptions(screen.getByLabelText('Filter'), 'completed');
     await screen.findByText('No matching tasks');

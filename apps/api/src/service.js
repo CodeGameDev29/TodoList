@@ -6,9 +6,11 @@ export function createTaskService(repository, { now = () => new Date() } = {}) {
     return task;
   };
   return {
-    list: (parameters = new URLSearchParams()) => repository.list({
-      ...validateListQuery(parameters), today: now().toISOString().slice(0, 10),
-    }),
+    list: (parameters = new URLSearchParams()) =>
+      repository.list({
+        ...validateListQuery(parameters),
+        today: now().toISOString().slice(0, 10),
+      }),
     get: (id) => requireTask(repository.get(id)),
     create: (body) => repository.create(validateTask(body)),
     update: (id, body) => requireTask(repository.update(id, validateTask(body, true))),
